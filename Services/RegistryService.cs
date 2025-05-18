@@ -12,7 +12,6 @@ namespace RegistryRepairTool.Services
 
         private const string ErrorsFilePath = "registry_errors.json";
 
-        // Добавьте этот метод
         public void SaveErrorsToFile(List<RegistryError> errors)
         {
             try
@@ -24,7 +23,6 @@ namespace RegistryRepairTool.Services
             catch { /* Логирование ошибок */ }
         }
 
-        // И этот метод
         public List<RegistryError> LoadErrorsFromFile()
         {
             if (File.Exists(ErrorsFilePath))
@@ -35,7 +33,7 @@ namespace RegistryRepairTool.Services
             return new List<RegistryError>();
         }
 
-        // Модифицируем существующий метод ScanForErrors
+     
         public List<RegistryError> ScanForErrors()
         {
             var errors = new List<RegistryError>();
@@ -223,7 +221,7 @@ namespace RegistryRepairTool.Services
             string[] startupKeys = {
         @"Software\Microsoft\Windows\CurrentVersion\Run",
         @"Software\Microsoft\Windows\CurrentVersion\RunOnce"
-    };
+            };
 
             foreach (var keyPath in startupKeys)
             {
