@@ -20,7 +20,7 @@
                 <ResourceDictionary>
                     <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
                     <converters:InverseCountToVisibilityConverter x:Key="InverseCountToVisibility"/>
-                   
+                    <converters:RegistryValueConverter x:Key="RegistryValueConverter"/>
                     <!-- Цветовая палитра -->
                     <SolidColorBrush x:Key="PrimaryBrush" Color="#FF3F51B5"/>
                     <SolidColorBrush x:Key="PrimaryLightBrush" Color="#FFC5CAE9"/>

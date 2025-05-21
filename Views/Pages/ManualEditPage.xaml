@@ -3,8 +3,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:local="clr-namespace:RegistryRepairTool.ViewModels"
+      xmlns:converters="clr-namespace:RegistryRepairTool.Utilities.Converters"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+TextOptions.TextFormattingMode="Display"
+      TextOptions.TextRenderingMode="ClearType"
+      SnapsToDevicePixels="True"
+      UseLayoutRounding="True"
       mc:Ignorable="d"
       Title="Ручное редактирование реестра"
       Background="{DynamicResource MaterialDesignPaper}">
@@ -15,7 +20,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Панель навигации -->
+        <!-- Navigation Panel -->
         <Border Grid.Row="0" 
                 CornerRadius="4"
                 Background="{DynamicResource MaterialDesignCardBackground}"
@@ -23,6 +28,7 @@
                 Margin="0,0,0,16"
                 Effect="{StaticResource MaterialDesignShadowDepth1}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Path TextBox -->
                 <TextBox x:Name="PathTextBox" 
                          Text="{Binding CurrentPath, UpdateSourceTrigger=PropertyChanged}"
                          material:HintAssist.Hint="Путь в реестре"
@@ -30,6 +36,7 @@
                          MinWidth="300"
                          KeyDown="TextBox_KeyDown"/>
 
+                <!-- Navigation Buttons -->
                 <Button Command="{Binding NavigateCommand}"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Margin="8,0,0,0"
@@ -44,33 +51,34 @@
                         Style="{StaticResource MaterialDesignToolButton}"
                         Margin="8,0,0,0"
                         ToolTip="Обновить">
-                    <material:PackIcon Kind="Refresh" />
+                    <material:PackIcon Kind="Refresh"/>
                 </Button>
 
+                <!-- Key Operations -->
                 <Button Command="{Binding CreateKeyCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
                         Margin="8,0,0,0"
                         ToolTip="Создать раздел">
-                    <material:PackIcon Kind="FolderPlus" />
+                    <material:PackIcon Kind="FolderPlus"/>
                 </Button>
 
                 <Button Command="{Binding DeleteKeyCommand}"
                         Style="{StaticResource MaterialDesignToolButton}"
                         Margin="8,0,0,0"
                         ToolTip="Удалить раздел">
-                    <material:PackIcon Kind="FolderRemove" />
+                    <material:PackIcon Kind="FolderRemove"/>
                 </Button>
             </StackPanel>
         </Border>
 
-        <!-- Основное содержимое -->
+        <!-- Main Content -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Дерево реестра -->
+            <!-- Registry Tree -->
             <Border Grid.Column="0" 
                     Margin="0,0,8,0"
                     CornerRadius="4"
@@ -82,7 +90,12 @@
                           VirtualizingStackPanel.IsVirtualizing="True"
                           VirtualizingStackPanel.VirtualizationMode="Recycling"
                           BorderThickness="0"
-                          ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          TextOptions.TextFormattingMode="Display"
+          TextOptions.TextRenderingMode="ClearType"
+          SnapsToDevicePixels="True"
+          UseLayoutRounding="True">
+
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type TreeViewItem}">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
@@ -112,7 +125,7 @@
                 </TreeView>
             </Border>
 
-            <!-- Значения реестра -->
+            <!-- Registry Values -->
             <Border Grid.Column="1"
                     CornerRadius="4"
                     Background="{DynamicResource MaterialDesignCardBackground}"
@@ -124,7 +137,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Заголовок -->
+                    <!-- Header -->
                     <Border Grid.Row="0" 
                             Background="{DynamicResource PrimaryHueLightBrush}"
                             CornerRadius="4,4,0,0"
@@ -136,65 +149,107 @@
                                    TextTrimming="CharacterEllipsis"/>
                     </Border>
 
-                    <!-- Список значений -->
+                    <!-- Values List -->
                     <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding SelectedNode.Values}"
-                              SelectedItem="{Binding SelectedNode.SelectedValue, Mode=TwoWay}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              CanUserDeleteRows="False"
-                              CanUserReorderColumns="False"
-                              SelectionMode="Single"
-                              SelectionUnit="FullRow"
-                              BorderThickness="0"
-                              HeadersVisibility="Column"
-                              RowHeaderWidth="0"
-                              GridLinesVisibility="None"
-                              Background="Transparent">
+          ItemsSource="{Binding SelectedNode.Values}"
+          SelectedItem="{Binding SelectedNode.SelectedValue, Mode=TwoWay}"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          CanUserDeleteRows="False"
+          CanUserReorderColumns="False"
+          CanUserResizeRows="False"
+          CanUserSortColumns="True"
+          IsReadOnly="True"
+          SelectionMode="Single"
+          SelectionUnit="FullRow"
+          BorderThickness="0"
+          HeadersVisibility="Column"
+          RowHeaderWidth="0"
+          GridLinesVisibility="None"
+          Background="Transparent"
+          HorizontalGridLinesBrush="Transparent"
+          VerticalGridLinesBrush="Transparent"
+          EnableRowVirtualization="True"
+          EnableColumnVirtualization="True"
+          VirtualizingPanel.IsVirtualizing="True"
+          VirtualizingPanel.VirtualizationMode="Recycling"
+          TextOptions.TextFormattingMode="Display"
+          TextOptions.TextRenderingMode="ClearType"
+          SnapsToDevicePixels="True"
+          UseLayoutRounding="True">
+
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Имя" 
-                                                Binding="{Binding Name}"
-                                                Width="*"
-                                                ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"/>
+                          Binding="{Binding Name}"
+                          Width="*"
+                          IsReadOnly="True"
+                          ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
+                          TextBlock.TextAlignment="Left"/>
                             <DataGridTextColumn Header="Тип" 
-                                                Binding="{Binding Kind}"
-                                                Width="Auto"
-                                                ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"/>
+                          Binding="{Binding Kind}"
+                          Width="Auto"
+                          IsReadOnly="True"
+                          ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
+                          TextBlock.TextAlignment="Left"/>
                             <DataGridTextColumn Header="Значение" 
-                                                Binding="{Binding Value}"
-                                                Width="2*"
-                                                ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"/>
+                          Binding="{Binding Value, Converter={StaticResource RegistryValueConverter}}"
+                          Width="2*"
+                          IsReadOnly="True"
+                          ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}"
+                          TextBlock.TextAlignment="Left"/>
                         </DataGrid.Columns>
+
                         <DataGrid.CellStyle>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                                 <Setter Property="Padding" Value="8,4"/>
+                                <Setter Property="IsTabStop" Value="False"/>
+                                <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+                                <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+                                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                <Setter Property="UseLayoutRounding" Value="True"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="DataGridCell">
-                                            <Grid Background="{TemplateBinding Background}">
-                                                <ContentPresenter VerticalAlignment="Center"/>
+                                            <Grid Background="{TemplateBinding Background}" 
+                              SnapsToDevicePixels="True"
+                              UseLayoutRounding="True">
+                                                <ContentPresenter Margin="10,0,0,0" 
+                                          VerticalAlignment="Center"
+                                          TextOptions.TextFormattingMode="Display"
+                                          TextOptions.TextRenderingMode="ClearType"
+                                          SnapsToDevicePixels="True"/>
                                             </Grid>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
                             </Style>
                         </DataGrid.CellStyle>
+
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderBrush" Value="Transparent"/>
+                                <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+                                <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+                                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                <Setter Property="UseLayoutRounding" Value="True"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter Property="Background" Value="{DynamicResource PrimaryHueLightBrush}"/>
                                         <Setter Property="Foreground" Value="{DynamicResource PrimaryHueLightForegroundBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource PrimaryHueLightBrush}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.RowStyle>
                     </DataGrid>
 
-                    <!-- Панель действий -->
+                    <!-- Action Panel -->
                     <Border Grid.Row="2" 
                             Background="{DynamicResource MaterialDesignToolBarBackground}"
                             CornerRadius="0,0,4,4"
@@ -208,6 +263,7 @@
                                     <TextBlock Text="Создать"/>
                                 </StackPanel>
                             </Button>
+
                             <Button Command="{Binding EditValueCommand}"
                                     Style="{StaticResource MaterialDesignFlatButton}"
                                     Margin="8,0,0,0"
@@ -217,6 +273,7 @@
                                     <TextBlock Text="Изменить"/>
                                 </StackPanel>
                             </Button>
+
                             <Button Command="{Binding DeleteValueCommand}"
                                     Style="{StaticResource MaterialDesignFlatButton}"
                                     Margin="8,0,0,0"
@@ -226,6 +283,7 @@
                                     <TextBlock Text="Удалить"/>
                                 </StackPanel>
                             </Button>
+
                             <Button Command="{Binding ExportCommand}"
                                     Style="{StaticResource MaterialDesignFlatButton}"
                                     Margin="8,0,0,0"

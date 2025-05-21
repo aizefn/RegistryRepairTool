@@ -10,12 +10,19 @@ namespace RegistryRepairTool
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            base.OnStartup(e);
+            System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+
+            // Устанавливаем DPI awareness
+            if (Environment.OSVersion.Version.Major >= 6)
+            {
+                SetProcessDPIAware();
+            }
             // Set the theme
             var primaryColor = SwatchHelper.Lookup[MaterialDesignColor.DeepPurple];
             var accentColor = SwatchHelper.Lookup[MaterialDesignColor.Lime];
             ITheme theme = Theme.Create(new MaterialDesignLightTheme(), primaryColor, accentColor);
             Resources.SetTheme(theme);
-            base.OnStartup(e);
 
             var registryService = new RegistryService();
 
@@ -57,5 +64,7 @@ namespace RegistryRepairTool
             }
 
         }
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetProcessDPIAware();
     }
 }
