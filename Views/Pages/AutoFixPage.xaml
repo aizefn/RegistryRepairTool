@@ -2,7 +2,10 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
-      xmlns:local="clr-namespace:RegistryRepairTool.Views.Pages">
+      xmlns:local="clr-namespace:RegistryRepairTool.Views.Pages"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d">
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -12,28 +15,26 @@
 
         <!-- Панель действий -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-           
             <Button Command="{Binding ScanRegistryCommand}" 
                     Style="{StaticResource ActionButtonStyle}"
                     Content="Сканировать"/>
 
             <Button Command="{Binding SelectAllCommand}" 
-        Style="{StaticResource OutlineButtonStyle}"
-        Content="{Binding SelectAllButtonContent}"
-        Margin="8,0"/>
-
-            <!-- Удаляем старую кнопку DeselectAllCommand -->
-
-
+                    Style="{StaticResource OutlineButtonStyle}"
+                    Content="{Binding SelectAllButtonContent}"
+                    Margin="8,0,0,0"/>
 
             <Button Command="{Binding FixSelectedCommand}" 
                     Style="{StaticResource ActionButtonStyle}"
                     Background="{StaticResource PrimaryDarkBrush}"
-                    Content="Исправить выбранные"/>
+                    Content="Исправить выбранные"
+                    Margin="8,0,0,0"/>
+
             <Button Command="{Binding ClearAllErrorsCommand}" 
                     Style="{StaticResource ActionButtonStyle}"
                     Background="#FFD32F2F"
-                    Content="Очистить все"/>            
+                    Content="Очистить все"
+                    Margin="8,0,0,0"/>
 
             <TextBlock Margin="16,0,0,0" VerticalAlignment="Center"
                        Text="{Binding SelectedErrorsCount, StringFormat='Выбрано: {0}'}"
@@ -46,42 +47,91 @@
 
         <!-- Список ошибок -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding RegistryErrors}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource CardStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+            <Grid>
+                <!-- Основной контент (список ошибок) -->
+                <ItemsControl ItemsSource="{Binding RegistryErrors}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <CheckBox Grid.Column="0" 
-          IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-          Style="{StaticResource StandardCheckBoxStyle}"
-          VerticalAlignment="Center"/>     
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding ErrorName}" 
-                                               FontWeight="Bold" FontSize="16"
-                                               Foreground="{StaticResource PrimaryDarkBrush}"/>
+                                    <CheckBox Grid.Column="0" 
+                                              IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Style="{StaticResource StandardCheckBoxStyle}"
+                                              VerticalAlignment="Center"
+                                              Margin="8,0,8,0"/>
 
-                                    <TextBlock Text="{Binding Description}" 
-                                               Margin="0,4,0,8" 
-                                               TextWrapping="Wrap"/>
+                                    <StackPanel Grid.Column="1" Margin="4,8,4,8">
+                                        <TextBlock Text="{Binding ErrorName}" 
+                                                   FontWeight="Bold" FontSize="16"
+                                                   Foreground="{StaticResource PrimaryDarkBrush}"/>
 
-                                    <TextBlock Text="{Binding RegistryPath}" 
-                                               FontFamily="Consolas"
-                                               Foreground="#666"/>
-                                </StackPanel>
+                                        <TextBlock Text="{Binding Description}" 
+                                                   Margin="0,4,0,8" 
+                                                   TextWrapping="Wrap"/>
 
-                                <TextBlock Grid.Column="2" 
-                                           Style="{StaticResource StatusBadgeStyle}"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                        <TextBlock Text="{Binding RegistryPath}" 
+                                                   FontFamily="Consolas"
+                                                   Foreground="#666"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="2" 
+                                               Style="{StaticResource StatusBadgeStyle}"
+                                               Margin="8"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+                <!-- Состояние пустого списка -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <material:PackIcon Kind="FileFindOutline" 
+                                      Width="48" 
+                                      Height="48"
+                                      Foreground="#999"
+                                      HorizontalAlignment="Center">
+                        <material:PackIcon.Style>
+                            <Style TargetType="material:PackIcon">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RegistryErrors.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </material:PackIcon.Style>
+                    </material:PackIcon>
+
+                    <TextBlock Text="Здесь пока пусто" 
+                               Margin="0,16,0,0"
+                               HorizontalAlignment="Center" 
+                               FontSize="20"
+                               Foreground="#999">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RegistryErrors.Count}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
         </ScrollViewer>
     </Grid>
 </Page>

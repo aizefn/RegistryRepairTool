@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Все найденные ошибки" 
         Height="550" 
-        Width="700"
+        Width="800"
         WindowStyle="None"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
@@ -23,27 +23,37 @@
 
             <!-- Кастомные стили -->
             <Style x:Key="ErrorListViewItemStyle" TargetType="ListViewItem">
-                <Setter Property="Padding" Value="12,8"/>
-                <Setter Property="Margin" Value="0,0,0,4"/>
-                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="12,10"/>
+                <Setter Property="Margin" Value="0,0,0,6"/>
+                <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListViewItem">
                             <Border x:Name="Border"
                                     Background="{TemplateBinding Background}"
-                                    CornerRadius="4"
+                                    CornerRadius="6"
                                     BorderThickness="1"
-                                    BorderBrush="{DynamicResource MaterialDesignDivider}">
-                                <ContentPresenter Margin="{TemplateBinding Padding}"/>
+                                    BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                    SnapsToDevicePixels="True">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Width="4" Background="Transparent" Margin="0,0,12,0"/>
+                                    <ContentPresenter Grid.Column="1" Margin="{TemplateBinding Padding}"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryHueLightBackground}"/>
+                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryHueLightBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryHueLightBackground}"/>
+                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource PrimaryHueLightBrush}"/>
+                                    <Setter TargetName="Border" Property="BorderThickness" Value="1.5"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -62,13 +72,36 @@
                 <Setter Property="Padding" Value="16,8"/>
                 <Setter Property="Margin" Value="8,0"/>
                 <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="MinWidth" Value="120"/>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="6"/>
+            </Style>
+
+            <Style x:Key="ErrorTitleTextStyle" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="15"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryHueDarkBrush}"/>
+                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            </Style>
+
+            <Style x:Key="DescriptionTextStyle" TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
+                <Setter Property="Margin" Value="0,4,0,0"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+
+            <Style x:Key="PathTextStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Consolas"/>
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignSecondaryText}"/>
+                <Setter Property="Margin" Value="0,6,0,0"/>
+                <Setter Property="FontSize" Value="12"/>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
 
     <Border CornerRadius="12" Margin="10" 
             Background="{DynamicResource MaterialDesignPaper}"
-            BorderBrush="{DynamicResource PrimaryDarkBrush}"
+            BorderBrush="{DynamicResource PrimaryHueDarkBrush}"
             BorderThickness="1"
             Effect="{StaticResource MaterialDesignShadowDepth4}">
 
@@ -81,9 +114,15 @@
 
             <!-- Заголовок с кнопкой закрытия -->
             <Border Grid.Row="0" 
-                    Background="{DynamicResource PrimaryBrush}"
                     CornerRadius="12,12,0,0"
-                    Padding="16,12">
+                    Padding="16,12"
+                    Height="70">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{Binding Source={StaticResource PrimaryBrush}, Path=Color}" Offset="0"/>
+                        <GradientStop Color="#FF6A1B9A" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -104,8 +143,9 @@
                             Style="{StaticResource MaterialDesignIconButton}"
                             Command="{Binding CloseCommand}"
                             ToolTip="Закрыть"
-                            Foreground="White">
-                        <materialDesign:PackIcon Kind="Close" Width="24" Height="24"/>
+                            Foreground="White"
+                            Focusable="False">
+                        <materialDesign:PackIcon Kind="Close" Width="20" Height="20"/>
                     </Button>
                 </Grid>
             </Border>
@@ -113,8 +153,9 @@
             <!-- Список ошибок -->
             <ScrollViewer Grid.Row="1" Padding="16" VerticalScrollBarVisibility="Auto">
                 <ListView ItemsSource="{Binding Errors, UpdateSourceTrigger=PropertyChanged}"
-          BorderThickness="0"
-          ItemContainerStyle="{StaticResource ErrorListViewItemStyle}">
+                          BorderThickness="0"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ItemContainerStyle="{StaticResource ErrorListViewItemStyle}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -123,29 +164,23 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <materialDesign:PackIcon Kind="Alert" 
+                                <materialDesign:PackIcon Kind="AlertCircle" 
                                                       Grid.Column="0"
                                                       Foreground="{DynamicResource ErrorBrush}"
-                                                      Width="20"
-                                                      Height="20"
+                                                      Width="22"
+                                                      Height="22"
                                                       Margin="0,0,12,0"
                                                       VerticalAlignment="Top"/>
 
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding ErrorName}"
-                                           FontWeight="Bold"
-                                           FontSize="16"
-                                           Foreground="{DynamicResource PrimaryDarkBrush}"/>
+                                           Style="{StaticResource ErrorTitleTextStyle}"/>
 
                                     <TextBlock Text="{Binding Description}"
-                                           Margin="0,4,0,0"
-                                           TextWrapping="Wrap"
-                                           Foreground="{DynamicResource MaterialDesignBody}"/>
+                                           Style="{StaticResource DescriptionTextStyle}"/>
 
                                     <TextBlock Text="{Binding RegistryPath}"
-                                           FontFamily="Consolas"
-                                           Foreground="{DynamicResource MaterialDesignSecondaryText}"
-                                           Margin="0,4,0,0"/>
+                                           Style="{StaticResource PathTextStyle}"/>
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
@@ -157,9 +192,11 @@
             <Border Grid.Row="2" 
                     Background="{DynamicResource MaterialDesignToolBarBackground}"
                     CornerRadius="0,0,12,12"
-                    Padding="16,12">
+                    Padding="16,12"
+                    BorderThickness="0,1,0,0"
+                    BorderBrush="{DynamicResource MaterialDesignDivider}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="ОЧИСТИТЬ СПИСОК" 
+                    <Button Content="Очистить список" 
                             Command="{Binding ClearCommand}" 
                             Style="{StaticResource ActionButtonStyle}"
                             Background="{DynamicResource ErrorBrush}"

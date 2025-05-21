@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using MaterialDesignColors;
+using MaterialDesignThemes.Wpf;
 using RegistryRepairTool.Services;
 using RegistryRepairTool.Views.Pages;
 
@@ -8,6 +10,11 @@ namespace RegistryRepairTool
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Set the theme
+            var primaryColor = SwatchHelper.Lookup[MaterialDesignColor.DeepPurple];
+            var accentColor = SwatchHelper.Lookup[MaterialDesignColor.Lime];
+            ITheme theme = Theme.Create(new MaterialDesignLightTheme(), primaryColor, accentColor);
+            Resources.SetTheme(theme);
             base.OnStartup(e);
 
             var registryService = new RegistryService();

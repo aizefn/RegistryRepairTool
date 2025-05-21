@@ -38,110 +38,20 @@
             </Border>
 
             <!-- Быстрые действия -->
-                <TextBlock Text="Быстрые действия" 
-                           FontSize="18"
-                           FontWeight="Medium"
-                           Margin="0,20,0,10"
-                           Foreground="{DynamicResource PrimaryDarkBrush}"
-                           TextOptions.TextFormattingMode="Display"/>
 
-                <UniformGrid Columns="3" Margin="0,0,0,20">
+            <UniformGrid Columns="3" Margin="0,0,0,10">
                     <!-- Карточка быстрого сканирования -->
-                    <Border CornerRadius="8" 
-            Background="White" 
-            Margin="5" 
-            Padding="0"
-            Effect="{DynamicResource ShadowEffect}"
-            SnapsToDevicePixels="True">
-                        <Button Style="{DynamicResource ModernFlatButton}"
-                Command="{Binding DataContext.ScanRegistryCommand, 
-                          RelativeSource={RelativeSource AncestorType=Page}}"
-                SnapsToDevicePixels="True"
-                Padding="15">
-                            <StackPanel>
-                                <materialDesign:PackIcon Kind="Magnify" 
-                                        HorizontalAlignment="Center"
-                                        Width="40" 
-                                        Height="40"
-                                        Foreground="{DynamicResource PrimaryBrush}"
-                                        SnapsToDevicePixels="True"/>
-                                <TextBlock Text="Быстрое сканирование" 
-                           HorizontalAlignment="Center"
-                           Margin="0,5,0,0"/>
-                                <TextBlock Text="Проверить реестр на ошибки" 
-                           FontSize="12"
-                           Foreground="#FF666666"
-                           TextAlignment="Center"
-                           Margin="0,5,0,0"
-                           TextOptions.TextFormattingMode="Display"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
 
-                    <!-- Карточка очистки -->
-                    <Border CornerRadius="8" 
-            Background="White" 
-            Margin="5" 
-            Padding="0"
-            Effect="{DynamicResource ShadowEffect}"
-            SnapsToDevicePixels="True">
-                        <Button Style="{DynamicResource ModernFlatButton}"
-                Command="{Binding DataContext.ClearCommand, 
-                          RelativeSource={RelativeSource AncestorType=Page}}"
-                SnapsToDevicePixels="True"
-                Padding="15">
-                            <StackPanel>
-                                <materialDesign:PackIcon Kind="Broom" 
-                                        HorizontalAlignment="Center"
-                                        Width="40" 
-                                        Height="40"
-                                        Foreground="{DynamicResource PrimaryBrush}"
-                                        SnapsToDevicePixels="True"/>
-                                <TextBlock Text="Очистить список" 
-                           HorizontalAlignment="Center"
-                           Margin="0,5,0,0"/>
-                                <TextBlock Text="Удалить все найденные ошибки" 
-                           FontSize="12"
-                           Foreground="#FF666666"
-                           TextAlignment="Center"
-                           Margin="0,5,0,0"
-                           TextOptions.TextFormattingMode="Display"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
+                <!-- Карточка очистки -->
 
-                    <!-- Карточка резервной копии -->
+                <!-- Карточка резервной копии -->
                     <Border CornerRadius="8" 
             Background="White" 
             Margin="5" 
             Padding="0"
             Effect="{DynamicResource ShadowEffect}"
-            SnapsToDevicePixels="True">
-                        <Button Style="{DynamicResource ModernFlatButton}"
-                Command="{Binding DataContext.CreateBackupCommand, 
-                          RelativeSource={RelativeSource AncestorType=Page}}"
-                SnapsToDevicePixels="True"
-                Padding="15" Height="120">
-                            <StackPanel>
-                                <materialDesign:PackIcon Kind="BackupRestore" 
-                                        HorizontalAlignment="Center"
-                                        Width="40" 
-                                        Height="40"
-                                        Foreground="{DynamicResource PrimaryBrush}"
-                                        SnapsToDevicePixels="True"/>
-                                <TextBlock Text="Создать backup" 
-                           HorizontalAlignment="Center"
-                           Margin="0,5,0,0"/>
-                                <TextBlock Text="Сохранить текущее состояние реестра" 
-                           FontSize="12"
-                           Foreground="#FF666666"
-                           TextAlignment="Center"
-                           Margin="0,5,0,0"
-                           TextOptions.TextFormattingMode="Display"/>
-                            </StackPanel>
-                        </Button>
-                    </Border>
-                </UniformGrid>
+            SnapsToDevicePixels="True"/>
+            </UniformGrid>
 
                 <!-- Статистика системы -->
                 <Grid>
