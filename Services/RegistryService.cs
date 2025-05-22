@@ -352,19 +352,22 @@ namespace RegistryRepairTool.Services
         private bool CheckAppPathExists(string registryPath)
         {
             var parts = registryPath.Split('\\');
-            string valueName = parts.Last().Trim('"');
-            string keyPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
+            string subKeyName = parts.Last();
+            string parentPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
 
-            // Проверяем основную ветку
-            using (var key = Registry.LocalMachine.OpenSubKey(keyPath))
+            // Check main registry
+            using (var parentKey = Registry.LocalMachine.OpenSubKey(parentPath))
             {
-                if (key?.GetValue(valueName) != null) return true;
+                if (parentKey?.GetSubKeyNames().Contains(subKeyName) == true)
+                    return true;
             }
 
-            // Проверяем Wow6432Node
-            using (var key = Registry.LocalMachine.OpenSubKey($"SOFTWARE\\Wow6432Node\\{keyPath.Replace("SOFTWARE\\", "")}"))
+            // Check Wow6432Node
+            using (var parentKey = Registry.LocalMachine.OpenSubKey(
+                parentPath.Replace("SOFTWARE\\", "SOFTWARE\\Wow6432Node\\")))
             {
-                if (key?.GetValue(valueName) != null) return true;
+                if (parentKey?.GetSubKeyNames().Contains(subKeyName) == true)
+                    return true;
             }
 
             return false;
@@ -380,8 +383,34 @@ namespace RegistryRepairTool.Services
             }
         }
 
-        
-      
+        private void CheckMissingDllReferences(List<RegistryError> errors)
+        {
+            using (var appPaths = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"))
+            {
+                if (appPaths != null)
+                {
+                    foreach (var subKeyName in appPaths.GetSubKeyNames())
+                    {
+                        using (var subKey = appPaths.OpenSubKey(subKeyName))
+                        {
+                            var path = subKey?.GetValue("")?.ToString();
+                            if (!string.IsNullOrEmpty(path) && !File.Exists(path))
+                            {
+                                errors.Add(new RegistryError
+                                {
+                                    ErrorName = "MissingDLL",
+                                    ErrorType = "Registry",
+                                    Description = $"Отсутствует DLL/EXE: {Path.GetFileName(path)}",
+                                    RegistryPath = $"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\{subKeyName}",
+                                    Severity = ErrorSeverity.High
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private bool HandleRegistryError(RegistryError error)
         {
             try
@@ -390,6 +419,9 @@ namespace RegistryRepairTool.Services
                 {
                     case "MissingDLL":
                         return RemoveAppPathEntry(error.RegistryPath);
+
+                    case "InvalidStartupPath":
+                        return RemoveStartupEntry(error.RegistryPath);
 
                     case "ObsoleteEntry":
                         return RemoveUninstallEntry(error.RegistryPath);
@@ -409,22 +441,23 @@ namespace RegistryRepairTool.Services
         {
             try
             {
+                // Example registryPath: "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\appname.exe"
                 var parts = registryPath.Split('\\');
                 if (parts.Length < 2) return false;
 
-                string valueName = parts.Last().Trim('"');
-                string keyPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
+                string subKeyName = parts.Last();
+                string parentPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
 
-                // Удаляем из основной ветки
-                bool mainResult = DeleteRegistryValue(Registry.LocalMachine, keyPath, valueName);
+                // Delete from main registry
+                bool mainDeleted = DeleteRegistrySubKey(Registry.LocalMachine, parentPath, subKeyName);
 
-                // Удаляем из Wow6432Node (для 32-битных приложений на 64-битной системе)
-                bool wowResult = DeleteRegistryValue(
-                    Registry.LocalMachine.OpenSubKey("SOFTWARE\\Wow6432Node", true),
-                    keyPath.Replace("SOFTWARE\\", ""),
-                    valueName);
+                // Delete from Wow6432Node if exists (for 32-bit apps on 64-bit system)
+                bool wowDeleted = DeleteRegistrySubKey(
+                    Registry.LocalMachine,
+                    parentPath.Replace("SOFTWARE\\", "SOFTWARE\\Wow6432Node\\"),
+                    subKeyName);
 
-                return mainResult || wowResult;
+                return mainDeleted || wowDeleted;
             }
             catch (Exception ex)
             {
@@ -433,15 +466,33 @@ namespace RegistryRepairTool.Services
             }
         }
 
+        private bool DeleteRegistrySubKey(RegistryKey rootKey, string parentPath, string subKeyName)
+        {
+            try
+            {
+                using (var parentKey = rootKey.OpenSubKey(parentPath, true))
+                {
+                    if (parentKey == null) return false;
+
+                    parentKey.DeleteSubKeyTree(subKeyName, throwOnMissingSubKey: false);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private bool DeleteRegistryValue(RegistryKey rootKey, string keyPath, string valueName)
         {
             try
             {
-                using (var key = rootKey.OpenSubKey(keyPath, true))
+                using (var key = rootKey?.OpenSubKey(keyPath, true))
                 {
-                    if (key == null) return false; // Ключ не существует
+                    if (key == null) return false;
 
-                    if (key.GetValue(valueName) == null) return false; // Значение не существует
+                    if (key.GetValue(valueName) == null) return false;
 
                     key.DeleteValue(valueName);
                     return true;
@@ -470,9 +521,32 @@ namespace RegistryRepairTool.Services
                 return false;
             }
         }
-       
 
-       
+        private bool RemoveStartupEntry(string registryPath)
+        {
+            try
+            {
+                var parts = registryPath.Split('\\');
+                if (parts.Length < 2) return false;
+
+                string valueName = parts.Last();
+                string keyPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
+
+                using (var key = Registry.CurrentUser.OpenSubKey(keyPath, true))
+                {
+                    if (key == null) return false;
+
+                    key.DeleteValue(valueName, throwOnMissingValue: false);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error removing startup entry: {ex.Message}");
+                return false;
+            }
+        }
+
 
         // Обновите методы создания ошибок, чтобы они включали ErrorType:
         private void CheckInvalidStartupPaths(List<RegistryError> errors)
@@ -507,33 +581,7 @@ namespace RegistryRepairTool.Services
             }
         }
 
-        private void CheckMissingDllReferences(List<RegistryError> errors)
-        {
-            using (var appPaths = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"))
-            {
-                if (appPaths != null)
-                {
-                    foreach (var subKeyName in appPaths.GetSubKeyNames())
-                    {
-                        using (var subKey = appPaths.OpenSubKey(subKeyName))
-                        {
-                            var path = subKey?.GetValue("")?.ToString();
-                            if (!string.IsNullOrEmpty(path) && !File.Exists(path))
-                            {
-                                errors.Add(new RegistryError
-                                {
-                                    ErrorName = "MissingDLL",
-                                    ErrorType = "Registry",
-                                    Description = $"Отсутствует DLL/EXE: {Path.GetFileName(path)}",
-                                    RegistryPath = $"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\{subKeyName}",
-                                    Severity = ErrorSeverity.High
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        }
+      
 
         private void CheckObsoleteEntries(List<RegistryError> errors)
         {
