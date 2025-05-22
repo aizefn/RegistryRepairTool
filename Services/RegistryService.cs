@@ -3,15 +3,117 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using Microsoft.Win32;
+using RegistryRepairTool.Models;
 
 namespace RegistryRepairTool.Services
 {
     public class RegistryService
     {
         private const string SettingsKey = @"Software\RegistryRepairTool";
+        private const string RegistryKeyPath = @"SOFTWARE\RegistryRepairTool";
 
         private const string ErrorsFilePath = "registry_errors.json";
+        public T GetRegistryValue<T>(string valueName, T defaultValue)
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath))
+                {
+                    if (key == null) return defaultValue;
 
+                    var value = key.GetValue(valueName);
+                    return value != null ? (T)Convert.ChangeType(value, typeof(T)) : defaultValue;
+                }
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        // Добавить в класс RegistryService
+        public void SaveAllSettings(SettingsModel settings)
+        {
+            using (var key = Registry.CurrentUser.CreateSubKey(SettingsKey))
+            {
+                key.SetValue("RunAtStartup", settings.RunAtStartup ? 1 : 0);
+                key.SetValue("AutoScanOnStartup", settings.AutoScanOnStartup ? 1 : 0);
+                key.SetValue("ShowNotificationAfterFix", settings.ShowNotificationAfterFix ? 1 : 0);
+                key.SetValue("PlaySoundOnScanComplete", settings.PlaySoundOnScanComplete ? 1 : 0);
+                key.SetValue("SaveLogsToFile", settings.SaveLogsToFile ? 1 : 0);
+                key.SetValue("UseDefaultLogPath", settings.UseDefaultLogPath ? 1 : 0);
+                key.SetValue("CustomLogPath", settings.CustomLogPath ?? "");
+                key.SetValue("BackupLocation", settings.BackupLocation ?? "Backups");
+            }
+
+            // Сохраняем настройки автозагрузки отдельно
+            SetStartup(settings.RunAtStartup);
+        }
+
+        public SettingsModel LoadAllSettings()
+        {
+            var settings = new SettingsModel();
+
+            using (var key = Registry.CurrentUser.OpenSubKey(SettingsKey))
+            {
+                if (key != null)
+                {
+                    settings.RunAtStartup = key.GetValue("RunAtStartup", 0).ToString() == "1";
+                    settings.AutoScanOnStartup = key.GetValue("AutoScanOnStartup", 1).ToString() == "1";
+                    settings.ShowNotificationAfterFix = key.GetValue("ShowNotificationAfterFix", 1).ToString() == "1";
+                    settings.PlaySoundOnScanComplete = key.GetValue("PlaySoundOnScanComplete", 1).ToString() == "1";
+                    settings.SaveLogsToFile = key.GetValue("SaveLogsToFile", 1).ToString() == "1";
+                    settings.UseDefaultLogPath = key.GetValue("UseDefaultLogPath", 1).ToString() == "1";
+                    settings.CustomLogPath = key.GetValue("CustomLogPath", "").ToString();
+                    settings.BackupLocation = key.GetValue("BackupLocation", "Backups").ToString();
+                }
+            }
+
+            // Проверяем настройки автозагрузки
+            settings.RunAtStartup = LoadStartupSetting();
+
+            return settings;
+        }
+
+        public void SetRegistryValue(string valueName, object value)
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.CreateSubKey(RegistryKeyPath))
+                {
+                    key.SetValue(valueName, value);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка записи в реестр: {ex.Message}");
+            }
+        }
+
+        // Управление автозагрузкой
+        public void SetStartup(bool enable)
+        {
+            try
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+                {
+                    if (enable)
+                    {
+                        key.SetValue("RegistryRepairTool",
+                            Process.GetCurrentProcess().MainModule.FileName);
+                    }
+                    else
+                    {
+                        key.DeleteValue("RegistryRepairTool", false);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка настройки автозагрузки: {ex.Message}");
+            }
+        }
         public void SaveErrorsToFile(List<RegistryError> errors)
         {
             try
@@ -32,8 +134,29 @@ namespace RegistryRepairTool.Services
             }
             return new List<RegistryError>();
         }
+        public void SaveStartupSetting(bool runAtStartup)
+        {
+            using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
+            {
+                if (runAtStartup)
+                {
+                    key.SetValue("RegistryRepairTool", Process.GetCurrentProcess().MainModule.FileName);
+                }
+                else
+                {
+                    key.DeleteValue("RegistryRepairTool", false);
+                }
+            }
+        }
 
-     
+        public bool LoadStartupSetting()
+        {
+            using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run"))
+            {
+                return key?.GetValue("RegistryRepairTool") != null;
+            }
+        }
+
         public List<RegistryError> ScanForErrors()
         {
             var errors = new List<RegistryError>();

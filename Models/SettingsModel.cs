@@ -5,34 +5,73 @@ using System.Text;
 using System.Threading.Tasks;
 using RegistryRepairTool.ViewModels;
 
-namespace RegistryRepairTool.Models
-{
     namespace RegistryRepairTool.Models
     {
         public class SettingsModel : ObservableObject
         {
-            private bool _scanSystemRegistry = true;
-            private bool _scanUserRegistry = true;
-            private bool _createBackupBeforeFix = true;
-            private string _backupLocation = "Backups";
-            private bool _showDetailedLogs;
-
-            public bool ScanSystemRegistry
+            private bool _runAtStartup;
+            private bool _autoScanOnStartup;
+            private bool _showNotificationAfterFix;
+            private bool _playSoundOnScanComplete;
+            private bool _saveLogsToFile;
+            private bool _useDefaultLogPath = true;
+            private bool _useCustomLogPath;
+            private string _customLogPath;
+            private string _backupLocation;
+            public bool RunAtStartup
             {
-                get => _scanSystemRegistry;
-                set => SetProperty(ref _scanSystemRegistry, value);
+                get => _runAtStartup;
+                set => SetProperty(ref _runAtStartup, value);
             }
 
-            public bool ScanUserRegistry
+            public bool AutoScanOnStartup
             {
-                get => _scanUserRegistry;
-                set => SetProperty(ref _scanUserRegistry, value);
+                get => _autoScanOnStartup;
+                set => SetProperty(ref _autoScanOnStartup, value);
             }
 
-            public bool CreateBackupBeforeFix
+            public bool ShowNotificationAfterFix
             {
-                get => _createBackupBeforeFix;
-                set => SetProperty(ref _createBackupBeforeFix, value);
+                get => _showNotificationAfterFix;
+                set => SetProperty(ref _showNotificationAfterFix, value);
+            }
+
+            public bool PlaySoundOnScanComplete
+            {
+                get => _playSoundOnScanComplete;
+                set => SetProperty(ref _playSoundOnScanComplete, value);
+            }
+
+            public bool SaveLogsToFile
+            {
+                get => _saveLogsToFile;
+                set => SetProperty(ref _saveLogsToFile, value);
+            }
+
+            public bool UseDefaultLogPath
+            {
+                get => _useDefaultLogPath;
+                set
+                {
+                    SetProperty(ref _useDefaultLogPath, value);
+                    if (value) UseCustomLogPath = false;
+                }
+            }
+
+            public bool UseCustomLogPath
+            {
+                get => _useCustomLogPath;
+                set
+                {
+                    SetProperty(ref _useCustomLogPath, value);
+                    if (value) UseDefaultLogPath = false;
+                }
+            }
+
+            public string CustomLogPath
+            {
+                get => _customLogPath;
+                set => SetProperty(ref _customLogPath, value);
             }
 
             public string BackupLocation
@@ -40,18 +79,5 @@ namespace RegistryRepairTool.Models
                 get => _backupLocation;
                 set => SetProperty(ref _backupLocation, value);
             }
-
-            public bool ShowDetailedLogs
-            {
-                get => _showDetailedLogs;
-                set => SetProperty(ref _showDetailedLogs, value);
-            }
-            private bool _isFirstRun = true;
-            public bool IsFirstRun
-            {
-                get => _isFirstRun;
-                set => SetProperty(ref _isFirstRun, value);
-            }
         }
     }
-}
