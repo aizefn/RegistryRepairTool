@@ -14,11 +14,20 @@ namespace RegistryRepairTool.Views.Pages
             InitializeComponent();
             var vm = RegistryEditViewModel.Instance;
             DataContext = vm;
+            Loaded += OnPageLoaded;
 
             // Подписываемся на событие показа уведомления
-            vm.RequestShowCopyNotification += (s, e) => ShowCopyNotification();
-            DataContext = RegistryEditViewModel.Instance;
             PathTextBox.Focus(); // Устанавливаем фокус на TextBox при загрузке
+        }
+        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= OnPageLoaded; // Отписываемся после первого вызова
+            var vm = DataContext as RegistryEditViewModel;
+            if (vm != null)
+            {
+                // Подписываемся на событие только после загрузки страницы
+                vm.RequestShowCopyNotification += (s, args) => ShowCopyNotification();
+            }
         }
         private void ShowCopyNotification()
         {
@@ -68,10 +77,9 @@ namespace RegistryRepairTool.Views.Pages
         {
             if (e.Key == Key.Enter && DataContext is RegistryEditViewModel vm)
             {
-                vm.NavigateCommand.Execute(null);
-                // Передаем фокус обратно в TextBox после навигации
+                vm.NavigateCommand.Execute(PathTextBox.Text);
+                PathTextBox.Text = "";
                 PathTextBox.Focus();
-                PathTextBox.SelectAll();
             }
         }
 

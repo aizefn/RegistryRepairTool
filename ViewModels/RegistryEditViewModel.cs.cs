@@ -46,9 +46,15 @@ namespace RegistryRepairTool.ViewModels
 
         public RegistryEditViewModel()
         {
+            NavigateCommand = new RelayCommand<string>((path) =>
+            {
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    NavigateToPath(path);
+                }
+            });
             CopyPathCommand = new RelayCommand(CopySelectedPath, () => SelectedNode != null);
 
-            NavigateCommand = new RelayCommand(NavigateToPath);
             RefreshCommand = new RelayCommand(LoadRegistry);
             CreateKeyCommand = new RelayCommand(CreateKey, CanEditRegistry);
             DeleteKeyCommand = new RelayCommand(DeleteKey, CanDeleteKey);
@@ -91,28 +97,37 @@ namespace RegistryRepairTool.ViewModels
             }
         }
 
-        private void NavigateToPath()
+        // Удаляем старый метод NavigateToPath и заменяем его на:
+        public void NavigateToPath(string path)
         {
-            if (string.IsNullOrWhiteSpace(CurrentPath))
+            if (string.IsNullOrWhiteSpace(path))
                 return;
 
             try
             {
-                var pathParts = CurrentPath.Split('\\');
-                if (pathParts.Length == 0)
-                    return;
+                path = path.Trim().Replace('/', '\\').TrimEnd('\\');
 
-                // Удаляем возможные пробелы в начале/конце
-                CurrentPath = CurrentPath.Trim();
+                var pathParts = path.Split('\\');
+                if (pathParts.Length == 0) return;
 
-                RegistryKey baseKey = GetBaseKey(pathParts[0]);
+                // Получаем корневой ключ реестра
+                RegistryKey baseKey = pathParts[0].ToUpper() switch
+                {
+                    "HKEY_CLASSES_ROOT" => Registry.ClassesRoot,
+                    "HKEY_CURRENT_USER" => Registry.CurrentUser,
+                    "HKEY_LOCAL_MACHINE" => Registry.LocalMachine,
+                    "HKEY_USERS" => Registry.Users,
+                    "HKEY_CURRENT_CONFIG" => Registry.CurrentConfig,
+                    _ => null
+                };
+
                 if (baseKey == null)
                 {
                     MessageBox.Show($"Неизвестный корневой раздел: {pathParts[0]}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                // Находим соответствующий корневой узел в дереве
+                // Находим корневой узел в дереве
                 var rootNode = RootNodes.FirstOrDefault(n => n.Key == baseKey);
                 if (rootNode == null)
                 {
@@ -120,40 +135,41 @@ namespace RegistryRepairTool.ViewModels
                     return;
                 }
 
-                // Раскрываем корневой узел
+                // Раскрываем и выбираем корневой узел
                 rootNode.IsExpanded = true;
                 rootNode.IsSelected = true;
+                SelectedNode = rootNode;
 
-                RegistryNode targetNode = rootNode;
+                RegistryNode currentNode = rootNode;
 
-                // Переходим по пути
+                // Постепенно углубляемся по пути
                 foreach (var part in pathParts.Skip(1))
                 {
-                    if (string.IsNullOrWhiteSpace(part))
-                        continue;
+                    if (string.IsNullOrWhiteSpace(part)) continue;
 
-                    // Загружаем дочерние элементы, если они еще не загружены
-                    if (!targetNode.Children.Any())
+                    // Загружаем детей если нужно
+                    if (!currentNode.Children.Any())
                     {
-                        targetNode.LoadChildren();
+                        currentNode.LoadChildren();
                     }
 
-                    var nextNode = targetNode.Children.FirstOrDefault(c =>
+                    var nextNode = currentNode.Children.FirstOrDefault(c =>
                         c.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
 
                     if (nextNode == null)
                     {
-                        MessageBox.Show($"Раздел '{part}' не найден в '{targetNode.FullPath}'", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"Раздел '{part}' не найден в '{currentNode.FullPath}'", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
 
                     nextNode.IsExpanded = true;
                     nextNode.IsSelected = true;
-                    targetNode = nextNode;
+                    currentNode = nextNode;
+                    SelectedNode = currentNode;
                 }
 
-                // Устанавливаем выбранный узел
-                SelectedNode = targetNode;
+                // Обновляем CurrentPath для отображения
+                CurrentPath = currentNode.FullPath;
             }
             catch (Exception ex)
             {

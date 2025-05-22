@@ -30,7 +30,6 @@ TextOptions.TextFormattingMode="Display"
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Path TextBox -->
                 <TextBox x:Name="PathTextBox" 
-         Text=""
          material:HintAssist.Hint="Путь в реестре"
          Style="{StaticResource MaterialDesignFloatingHintTextBox}"
          MinWidth="300"
@@ -39,9 +38,10 @@ TextOptions.TextFormattingMode="Display"
 
                 <!-- Navigation Buttons -->
                 <Button Command="{Binding NavigateCommand}"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Margin="8,0,0,0"
-                        ToolTip="Перейти">
+        CommandParameter="{Binding ElementName=PathTextBox, Path=Text}"
+        Style="{StaticResource MaterialDesignFlatButton}"
+        Margin="8,0,0,0"
+        ToolTip="Перейти">
                     <StackPanel Orientation="Horizontal">
                         <material:PackIcon Kind="ArrowRight" Margin="0,0,4,0"/>
                         <TextBlock Text="Перейти"/>
@@ -175,19 +175,7 @@ TextOptions.TextFormattingMode="Display"
                    FontWeight="Bold"
                    Opacity="0"
                    VerticalAlignment="Center">
-                                <TextBlock.Triggers>
-                                    <EventTrigger RoutedEvent="Loaded">
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             From="0" To="1" Duration="0:0:0.2"/>
-                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             BeginTime="0:0:1.5"
-                                             From="1" To="0" Duration="0:0:0.5"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </EventTrigger>
-                                </TextBlock.Triggers>
+                              
                             </TextBlock>
                         </StackPanel>
                     </Border>

@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Registry Repair Tool" 
         Height="720" Width="1000"
-        MaxHeight="720" MaxWidth="1100"
-        MinHeight="720" MinWidth="1100"
+        MaxHeight="570" MaxWidth="1100"
+        MinHeight="570" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
         Background="#FFF8F9FA"
         FontFamily="Segoe UI">

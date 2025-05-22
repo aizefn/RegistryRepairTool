@@ -3,121 +3,147 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
       xmlns:viewModels="clr-namespace:RegistryRepairTool.ViewModels"
       Title="Настройки"
-      Background="#FFF8F9FA"
-      FontFamily="Segoe UI"
-      Margin="0,0,0,0">
+      Background="White"
+      FontFamily="Segoe UI">
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-            <Setter Property="Foreground" Value="#FF333333"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}"/>
         </Style>
 
-        <Style x:Key="SettingCheckBox" TargetType="CheckBox">
-            <Setter Property="Margin" Value="0,5,0,5"/>
+        <Style x:Key="SettingCheckBox" TargetType="CheckBox" BasedOn="{StaticResource MaterialDesignCheckBox}">
+            <Setter Property="Margin" Value="0,8,0,8"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Foreground" Value="#FF444444"/>
         </Style>
 
-        <Style x:Key="PathOptionRadioButton" TargetType="RadioButton">
-            <Setter Property="Margin" Value="0,5,15,5"/>
+        <Style x:Key="PathOptionRadioButton" TargetType="RadioButton" BasedOn="{StaticResource MaterialDesignRadioButton}">
+            <Setter Property="Margin" Value="0,8,15,8"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
 
         <Style x:Key="PathTextBox" TargetType="TextBox">
-            <Setter Property="Width" Value="280"/>
-            <Setter Property="Margin" Value="20,5,5,5"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Background" Value="#FFF0F0F0"/>
-            <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
-        </Style>
-
-        <Style x:Key="BrowseButton" TargetType="Button">
-            <Setter Property="Padding" Value="8,3"/>
-            <Setter Property="Background" Value="#FF3F51B5"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="300"/>
+            <Setter Property="Margin" Value="24,5,8,5"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="{StaticResource PrimaryDarkBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
 
-        <Style x:Key="DefaultButton" TargetType="Button">
-            <Setter Property="Padding" Value="15,5"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="Background" Value="#FFE0E0E0"/>
-            <Setter Property="Foreground" Value="#FF333333"/>
-            <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+        <Style x:Key="BrowseButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryDarkBrush}"/>
+            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
+        </Style>
+
+        <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
         </Style>
     </Page.Resources>
 
-    <ScrollViewer>
-        <StackPanel Margin="20" Width="400">
-            <!-- Основные настройки -->
-            <TextBlock Text="Основные настройки" Style="{StaticResource SectionHeader}"/>
-            <CheckBox Content="Запускать при старте Windows" 
-                     IsChecked="{Binding RunAtStartup}"
-                     Style="{StaticResource SettingCheckBox}"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Автоматизация -->
-            <TextBlock Text="Автоматизация" Style="{StaticResource SectionHeader}" Margin="0,15,0,0"/>
-            <CheckBox Content="Сканировать при запуске программы" 
-                     IsChecked="{Binding AutoScanOnStartup}"
-                     Style="{StaticResource SettingCheckBox}"/>
+        <!-- Заголовок страницы -->
+        <Border CornerRadius="6" Grid.Row="0" Background="{StaticResource PrimaryLightBrush}" Padding="16">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <materialDesign:PackIcon Kind="CogOutline" 
+                                       Width="24"
+                                       Height="24"
+                                       Margin="0,0,12,0"
+                                       Foreground="{StaticResource PrimaryDarkBrush}"/>
+                <TextBlock Text="Настройки приложения"
+                       FontSize="20"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource PrimaryDarkBrush}"/>
+            </StackPanel>
+        </Border>
 
-          
+        <!-- Основной контент настроек -->
+        <Border Grid.Row="1" Margin="24" Padding="0">
+            <StackPanel>
+                <!-- Основные настройки -->
+                <TextBlock Text="Основные" Style="{StaticResource SectionHeader}"/>
+                <CheckBox Content="Запускать при старте Windows" 
+                         IsChecked="{Binding RunAtStartup}"
+                         Style="{StaticResource SettingCheckBox}"/>
 
-            <!-- Журналирование -->
-            <TextBlock Text="Журналирование" Style="{StaticResource SectionHeader}" Margin="0,15,0,0"/>
-            <CheckBox Content="Включить сохранение логов исправлений" 
-                     IsChecked="{Binding SaveLogsToFile}"
-                     Style="{StaticResource SettingCheckBox}"/>
+                <!-- Автоматизация -->
+                <TextBlock Text="Автоматизация" Style="{StaticResource SectionHeader}" Margin="0,8,0,0"/>
+                <CheckBox Content="Сканировать при запуске программы" 
+                         IsChecked="{Binding AutoScanOnStartup}"
+                         Style="{StaticResource SettingCheckBox}"/>
 
-            <StackPanel Margin="20,5,0,0" 
-                       Visibility="{Binding SaveLogsToFile, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <RadioButton Content="Использовать папку по умолчанию" 
-                            IsChecked="{Binding UseDefaultLogPath}"
-                            GroupName="LogPathGroup"
-                            Style="{StaticResource PathOptionRadioButton}"/>
+                <!-- Журналирование -->
+                <TextBlock Text="Журналирование" Style="{StaticResource SectionHeader}" Margin="0,8,0,0"/>
+                <CheckBox Content="Включить сохранение логов исправлений" 
+                         IsChecked="{Binding SaveLogsToFile}"
+                         Style="{StaticResource SettingCheckBox}"/>
 
-                <RadioButton Content="Указать пользовательскую папку" 
-                            IsChecked="{Binding UseCustomLogPath}"
-                            GroupName="LogPathGroup"
-                            Style="{StaticResource PathOptionRadioButton}"/>
+                <StackPanel Margin="24,4,0,0" 
+                           Visibility="{Binding SaveLogsToFile, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <RadioButton Content="Использовать папку по умолчанию" 
+                                IsChecked="{Binding UseDefaultLogPath}"
+                                GroupName="LogPathGroup"
+                                Style="{StaticResource PathOptionRadioButton}"/>
 
-                <StackPanel Orientation="Horizontal" 
-                           Visibility="{Binding UseCustomLogPath, Converter={StaticResource BooleanToVisibilityConverter}}"
-                           Margin="0,5,0,10">
-                    <TextBox Text="{Binding CustomLogPath}" 
-                             Style="{StaticResource PathTextBox}"
-                             IsEnabled="{Binding UseCustomLogPath}"/>
+                    <RadioButton Content="Указать пользовательскую папку" 
+                                IsChecked="{Binding UseCustomLogPath}"
+                                GroupName="LogPathGroup"
+                                Style="{StaticResource PathOptionRadioButton}"/>
 
-                    <Button Content="Обзор" 
-                            Command="{Binding BrowseLogFolderCommand}"
-                            Style="{StaticResource BrowseButton}"/>
+                    <StackPanel Orientation="Horizontal" 
+                               Visibility="{Binding UseCustomLogPath, Converter={StaticResource BooleanToVisibilityConverter}}"
+                               Margin="0,4,0,12">
+                        <TextBox Text="{Binding CustomLogPath}" 
+                                 Style="{StaticResource PathTextBox}"
+                                 IsEnabled="{Binding UseCustomLogPath}"
+                                 materialDesign:HintAssist.Hint="Путь к папке для логов"/>
+                        <Button Content="Обзор" 
+                                Command="{Binding BrowseLogFolderCommand}"
+                                Style="{StaticResource BrowseButton}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Логи сохраняются в формате: RegistryFix_YYYY-MM-DD.log"
+                              FontSize="12"
+                              Foreground="#FF666666"
+                              Margin="24,0,0,0"/>
                 </StackPanel>
 
-                <TextBlock Text="Логи будут сохраняться в формате: RegistryFix_YYYY-MM-DD.log"
-                          FontSize="12"
-                          Foreground="#FF666666"
-                          Margin="20,0,0,0"/>
+                <!-- Кнопки сохранения/сброса -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,40,0,0">
+                    <Button Content="Сбросить" 
+                            Command="{Binding ResetToDefaultCommand}"
+                            Style="{StaticResource ActionButton}"
+                            Background="{StaticResource PrimaryLightBrush}"
+                            Foreground="{StaticResource PrimaryDarkBrush}" Height="40"/>
+                    <Button Content="Сохранить" 
+                            Command="{Binding SaveCommand}"
+                            Style="{StaticResource ActionButton}"
+                            Background="{StaticResource PrimaryDarkBrush}"
+                            Foreground="White" Height="40"/>
+                </StackPanel>
             </StackPanel>
-
-            <!-- Кнопки сохранения/сброса -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button Content="Сбросить настройки" 
-                        Margin="0,0,10,0"
-                        Command="{Binding ResetToDefaultCommand}"/>
-                <Button Content="Сохранить" 
-                        Padding="15,5" 
-                        Background="#FF3F51B5" 
-                        Foreground="White"
-                        Command="{Binding SaveCommand}"/>
-            </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+        </Border>
+    </Grid>
 </Page>

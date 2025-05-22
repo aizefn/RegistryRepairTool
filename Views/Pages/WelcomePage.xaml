@@ -50,7 +50,7 @@
     </Page.Resources>
 
     <Grid Width="644">
-        <Border CornerRadius="8" 
+        <Border CornerRadius="6" 
                 Background="White"
                 Margin="40"
                 Padding="40"
