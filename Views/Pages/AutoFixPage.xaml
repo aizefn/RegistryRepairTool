@@ -25,10 +25,10 @@
                     Margin="8,0,0,0"/>
 
             <Button Command="{Binding FixSelectedCommand}" 
-                    Style="{StaticResource ActionButtonStyle}"
-                    Background="{StaticResource PrimaryDarkBrush}"
-                    Content="Исправить выбранные"
-                    Margin="8,0,0,0"/>
+        Style="{StaticResource ActionButtonStyle}"
+        Background="{StaticResource PrimaryDarkBrush}"
+        Content="Исправить выбранные"
+        Margin="8,0,0,0"/>
 
             <Button Command="{Binding ClearAllErrorsCommand}" 
                     Style="{StaticResource ActionButtonStyle}"

@@ -10,11 +10,12 @@ namespace RegistryRepairTool.Services
         private bool _isSelected;
         private bool _isFixed;
 
+
         public string ErrorName { get; set; }
         public string Description { get; set; }
         public string RegistryPath { get; set; }
         public ErrorSeverity Severity { get; set; }
-
+        public string ErrorType { get; set; } // "Registry", "FileSystem", "Permission" и т.д.
 
         public bool IsSelected
         {
@@ -34,7 +35,14 @@ namespace RegistryRepairTool.Services
         public int RegistryValue
         {
             get => _registryValue;
-            set => OnPropertyChanged(nameof (_registryValue));
+            set
+            {
+                if (_registryValue != value)
+                {
+                    _registryValue = value;
+                    OnPropertyChanged(nameof(RegistryValue));
+                }
+            }
         }
         public bool IsFixed
         {
@@ -51,13 +59,27 @@ namespace RegistryRepairTool.Services
         public double MinValue
         {
             get => _minValue;
-            set => OnPropertyChanged(nameof(_minValue));
+            set
+            {
+                if (_minValue != value)
+                {
+                    _minValue = value;
+                    OnPropertyChanged(nameof(MinValue));
+                }
+            }
         }
 
         public double MaxValue
         {
             get => _maxValue;
-            set => OnPropertyChanged(nameof(_maxValue));
+            set
+            {
+                if (_maxValue != value)
+                {
+                    _maxValue = value;
+                    OnPropertyChanged(nameof(MaxValue));
+                }
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

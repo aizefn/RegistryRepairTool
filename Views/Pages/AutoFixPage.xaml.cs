@@ -11,5 +11,6 @@ namespace RegistryRepairTool.Views.Pages
             DataContext = AutoFixViewModel.Instance; // Используем Singleton-экземпляр
         }
 
+        
     }
 }

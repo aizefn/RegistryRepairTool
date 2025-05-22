@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
 using System.Text.Json;
 using Microsoft.Win32;
 using RegistryRepairTool.Models;
@@ -160,11 +161,20 @@ namespace RegistryRepairTool.Services
         public List<RegistryError> ScanForErrors()
         {
             var errors = new List<RegistryError>();
+
+            // Загружаем ранее исправленные ошибки
+            var fixedErrors = LoadErrorsFromFile().Where(e => e.IsFixed).ToList();
+
             CheckInvalidStartupPaths(errors);
             CheckMissingDllReferences(errors);
             CheckObsoleteEntries(errors);
 
-            SaveErrorsToFile(errors); // Сохраняем после сканирования
+            // Исключаем ошибки, которые были исправлены
+            errors.RemoveAll(e => fixedErrors.Any(f =>
+                f.RegistryPath == e.RegistryPath &&
+                f.ErrorName == e.ErrorName));
+
+            SaveErrorsToFile(errors);
             return errors;
         }
 
@@ -238,10 +248,267 @@ namespace RegistryRepairTool.Services
             }
             catch { /* Обработка ошибок */ }
         }
+
+
+
+
+        public bool TryFixError(RegistryError error)
+        {
+            if (error == null)
+            {
+                Debug.WriteLine("Ошибка: передан null");
+                return false;
+            }
+
+            // Логирование попытки исправления
+            Debug.WriteLine($"Попытка исправить {error.ErrorName} в {error.RegistryPath}");
+
+            // Проверка прав для HKLM
+            if (error.RegistryPath.StartsWith("HKLM") && !HasAdminRights())
+            {
+                Debug.WriteLine("Требуются права администратора для HKLM");
+                return false;
+            }
+
+            try
+            {
+                bool result = false;
+
+                switch (error.ErrorType)
+                {
+                    case "Registry":
+                        result = HandleRegistryError(error);
+                        break;
+                    case "FileSystem":
+                        result = HandleFileSystemError(error);
+                        break;
+                }
+
+                if (result)
+                {
+                    // Проверяем, действительно ли ошибка исправлена
+                    bool stillExists = VerifyErrorStillExists(error);
+                    Debug.WriteLine($"Результат проверки: {(stillExists ? "ошибка осталась" : "ошибка исправлена")}");
+
+                    if (!stillExists)
+                    {
+                        error.IsFixed = true;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Исключение при исправлении: {ex.Message}");
+                return false;
+            }
+        }
+        private bool HandleFileSystemError(RegistryError error)
+        {
+            // Заглушка для обработки файловых ошибок
+            // Можно реализовать позже
+            return false;
+        }
+        // Изменяем с private на public
+        public bool HasAdminRights()
+        {
+            try
+            {
+                using (var identity = WindowsIdentity.GetCurrent())
+                {
+                    var principal = new WindowsPrincipal(identity);
+                    return principal.IsInRole(WindowsBuiltInRole.Administrator);
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool VerifyErrorStillExists(RegistryError error)
+        {
+            try
+            {
+                switch (error.ErrorName)
+                {
+                    case "MissingDLL":
+                        return CheckAppPathExists(error.RegistryPath);
+
+                    case "ObsoleteEntry":
+                        return CheckUninstallEntryExists(error.RegistryPath);
+
+                    default:
+                        return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool CheckAppPathExists(string registryPath)
+        {
+            var parts = registryPath.Split('\\');
+            string valueName = parts.Last().Trim('"');
+            string keyPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
+
+            // Проверяем основную ветку
+            using (var key = Registry.LocalMachine.OpenSubKey(keyPath))
+            {
+                if (key?.GetValue(valueName) != null) return true;
+            }
+
+            // Проверяем Wow6432Node
+            using (var key = Registry.LocalMachine.OpenSubKey($"SOFTWARE\\Wow6432Node\\{keyPath.Replace("SOFTWARE\\", "")}"))
+            {
+                if (key?.GetValue(valueName) != null) return true;
+            }
+
+            return false;
+        }
+
+        private bool CheckUninstallEntryExists(string registryPath)
+        {
+            var parts = registryPath.Split('\\');
+            using (var key = Registry.LocalMachine.OpenSubKey(
+                string.Join("\\", parts.Skip(1))))
+            {
+                return key != null;
+            }
+        }
+
         
+      
+        private bool HandleRegistryError(RegistryError error)
+        {
+            try
+            {
+                switch (error.ErrorName)
+                {
+                    case "MissingDLL":
+                        return RemoveAppPathEntry(error.RegistryPath);
+
+                    case "ObsoleteEntry":
+                        return RemoveUninstallEntry(error.RegistryPath);
+
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error handling {error.ErrorName}: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool RemoveAppPathEntry(string registryPath)
+        {
+            try
+            {
+                var parts = registryPath.Split('\\');
+                if (parts.Length < 2) return false;
+
+                string valueName = parts.Last().Trim('"');
+                string keyPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
+
+                // Удаляем из основной ветки
+                bool mainResult = DeleteRegistryValue(Registry.LocalMachine, keyPath, valueName);
+
+                // Удаляем из Wow6432Node (для 32-битных приложений на 64-битной системе)
+                bool wowResult = DeleteRegistryValue(
+                    Registry.LocalMachine.OpenSubKey("SOFTWARE\\Wow6432Node", true),
+                    keyPath.Replace("SOFTWARE\\", ""),
+                    valueName);
+
+                return mainResult || wowResult;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error removing AppPath entry: {ex.Message}");
+                return false;
+            }
+        }
+
+        private bool DeleteRegistryValue(RegistryKey rootKey, string keyPath, string valueName)
+        {
+            try
+            {
+                using (var key = rootKey.OpenSubKey(keyPath, true))
+                {
+                    if (key == null) return false; // Ключ не существует
+
+                    if (key.GetValue(valueName) == null) return false; // Значение не существует
+
+                    key.DeleteValue(valueName);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool RemoveUninstallEntry(string registryPath)
+        {
+            try
+            {
+                var parts = registryPath.Split('\\');
+                if (parts.Length < 2) return false;
+
+                string fullPath = string.Join("\\", parts.Skip(1));
+                Registry.LocalMachine.DeleteSubKeyTree(fullPath, throwOnMissingSubKey: false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error removing Uninstall entry: {ex.Message}");
+                return false;
+            }
+        }
+       
+
+       
+
+        // Обновите методы создания ошибок, чтобы они включали ErrorType:
+        private void CheckInvalidStartupPaths(List<RegistryError> errors)
+        {
+            string[] startupKeys = {
+                @"Software\Microsoft\Windows\CurrentVersion\Run",
+                @"Software\Microsoft\Windows\CurrentVersion\RunOnce"
+            };
+
+            foreach (var keyPath in startupKeys)
+            {
+                using (var key = Registry.CurrentUser.OpenSubKey(keyPath))
+                {
+                    if (key == null) continue;
+
+                    foreach (var valueName in key.GetValueNames())
+                    {
+                        var path = key.GetValue(valueName)?.ToString();
+                        if (!File.Exists(path))
+                        {
+                            errors.Add(new RegistryError
+                            {
+                                ErrorName = "InvalidStartupPath",
+                                ErrorType = "Registry",
+                                Description = $"Несуществующий файл в автозагрузке: {path}",
+                                RegistryPath = $"HKCU\\{keyPath}\\{valueName}",
+                                Severity = ErrorSeverity.High
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
         private void CheckMissingDllReferences(List<RegistryError> errors)
         {
-            // Проверка App Paths на отсутствующие DLL
             using (var appPaths = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"))
             {
                 if (appPaths != null)
@@ -256,8 +523,9 @@ namespace RegistryRepairTool.Services
                                 errors.Add(new RegistryError
                                 {
                                     ErrorName = "MissingDLL",
+                                    ErrorType = "Registry",
                                     Description = $"Отсутствует DLL/EXE: {Path.GetFileName(path)}",
-                                    RegistryPath = $"HKLM\\SOFTWARE\\...\\App Paths\\{subKeyName}",
+                                    RegistryPath = $"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\{subKeyName}",
                                     Severity = ErrorSeverity.High
                                 });
                             }
@@ -266,13 +534,13 @@ namespace RegistryRepairTool.Services
                 }
             }
         }
+
         private void CheckObsoleteEntries(List<RegistryError> errors)
         {
-            // Проверка устаревших записей от удаленных программ
             string[] uninstallKeys = {
-            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-            @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-        };
+                @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+            };
 
             foreach (var keyPath in uninstallKeys)
             {
@@ -292,6 +560,7 @@ namespace RegistryRepairTool.Services
                                 errors.Add(new RegistryError
                                 {
                                     ErrorName = "ObsoleteEntry",
+                                    ErrorType = "Registry",
                                     Description = $"Устаревшая запись: {displayName ?? subKeyName}",
                                     RegistryPath = $"HKLM\\{keyPath}\\{subKeyName}",
                                     Severity = ErrorSeverity.Medium
@@ -302,72 +571,5 @@ namespace RegistryRepairTool.Services
                 }
             }
         }
-
-        public bool TryFixError(RegistryError error)
-        {
-            try
-            {
-                switch (error.ErrorName)
-                {
-                    case "InvalidStartupPath":
-                        return RemoveInvalidStartupEntry(error.RegistryPath);
-                    // Добавьте другие типы ошибок
-                    default:
-                        return false;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private bool RemoveInvalidStartupEntry(string registryPath)
-        {
-            var parts = registryPath.Split('\\');
-            var keyPath = string.Join("\\", parts.Skip(1).Take(parts.Length - 2));
-            var valueName = parts.Last();
-
-            using (var key = Registry.CurrentUser.OpenSubKey(keyPath, true))
-            {
-                if (key != null)
-                {
-                    key.DeleteValue(valueName);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void CheckInvalidStartupPaths(List<RegistryError> errors)
-        {
-            string[] startupKeys = {
-        @"Software\Microsoft\Windows\CurrentVersion\Run",
-        @"Software\Microsoft\Windows\CurrentVersion\RunOnce"
-            };
-
-            foreach (var keyPath in startupKeys)
-            {
-                using (var key = Registry.CurrentUser.OpenSubKey(keyPath))
-                {
-                    if (key == null) continue;
-
-                    foreach (var valueName in key.GetValueNames())
-                    {
-                        var path = key.GetValue(valueName)?.ToString();
-                        if (!File.Exists(path))
-                        {
-                            errors.Add(new RegistryError
-                            {
-                                ErrorName = "InvalidStartupPath",
-                                Description = $"Несуществующий файл в автозагрузке: {path}",
-                                RegistryPath = $"HKCU\\{keyPath}\\{valueName}"
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
     }
 }
