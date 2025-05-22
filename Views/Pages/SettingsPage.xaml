@@ -69,13 +69,6 @@
                      Style="{StaticResource SettingCheckBox}"/>
 
             <!-- Уведомления и звук -->
-            <TextBlock Text="Уведомления и звук" Style="{StaticResource SectionHeader}" Margin="0,15,0,0"/>
-            <CheckBox Content="Показывать уведомление после исправлений" 
-                     IsChecked="{Binding ShowNotificationAfterFix}"
-                     Style="{StaticResource SettingCheckBox}"/>
-            <CheckBox Content="Воспроизводить звук после сканирования" 
-                     IsChecked="{Binding PlaySoundOnScanComplete}"
-                     Style="{StaticResource SettingCheckBox}"/>
 
             <!-- Журналирование -->
             <TextBlock Text="Журналирование" Style="{StaticResource SectionHeader}" Margin="0,15,0,0"/>

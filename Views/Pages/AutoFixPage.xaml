@@ -16,8 +16,9 @@
         <!-- Панель действий -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
             <Button Command="{Binding ScanRegistryCommand}" 
-                    Style="{StaticResource ActionButtonStyle}"
-                    Content="Сканировать"/>
+        Style="{StaticResource ActionButtonStyle}"
+        Content="Сканировать"
+        ToolTip="{Binding AutoScanOnStartup, StringFormat='Автосканирование: {0}'}"/>
 
             <Button Command="{Binding SelectAllCommand}" 
                     Style="{StaticResource OutlineButtonStyle}"

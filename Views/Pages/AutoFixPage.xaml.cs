@@ -1,5 +1,7 @@
-﻿using RegistryRepairTool.ViewModels;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using RegistryRepairTool.ViewModels;
 
 namespace RegistryRepairTool.Views.Pages
 {
@@ -8,9 +10,16 @@ namespace RegistryRepairTool.Views.Pages
         public AutoFixPage()
         {
             InitializeComponent();
-            DataContext = AutoFixViewModel.Instance; // Используем Singleton-экземпляр
-        }
+            DataContext = AutoFixViewModel.Instance;
 
-        
+            Loaded += (s, e) =>
+            {
+                if (SettingsViewModel.Instance?.Settings?.AutoScanOnStartup == true)
+                {
+                    AutoFixViewModel.Instance.InitializeAutoScan();
+                }
+            };
+        }
+       
     }
 }

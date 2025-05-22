@@ -35,17 +35,13 @@ namespace RegistryRepairTool.Services
         // Добавить в класс RegistryService
         public void SaveAllSettings(SettingsModel settings)
         {
-            using (var key = Registry.CurrentUser.CreateSubKey(SettingsKey))
-            {
-                key.SetValue("RunAtStartup", settings.RunAtStartup ? 1 : 0);
-                key.SetValue("AutoScanOnStartup", settings.AutoScanOnStartup ? 1 : 0);
-                key.SetValue("ShowNotificationAfterFix", settings.ShowNotificationAfterFix ? 1 : 0);
-                key.SetValue("PlaySoundOnScanComplete", settings.PlaySoundOnScanComplete ? 1 : 0);
-                key.SetValue("SaveLogsToFile", settings.SaveLogsToFile ? 1 : 0);
-                key.SetValue("UseDefaultLogPath", settings.UseDefaultLogPath ? 1 : 0);
-                key.SetValue("CustomLogPath", settings.CustomLogPath ?? "");
-                key.SetValue("BackupLocation", settings.BackupLocation ?? "Backups");
-            }
+            SetRegistryValue("AutoScanOnStartup", settings.AutoScanOnStartup ? 1 : 0);
+            SetRegistryValue("ShowNotificationAfterFix", settings.ShowNotificationAfterFix ? 1 : 0);
+            SetRegistryValue("PlaySoundOnScanComplete", settings.PlaySoundOnScanComplete ? 1 : 0);
+            SetRegistryValue("SaveLogsToFile", settings.SaveLogsToFile ? 1 : 0);
+            SetRegistryValue("UseDefaultLogPath", settings.UseDefaultLogPath ? 1 : 0);
+            SetRegistryValue("CustomLogPath", settings.CustomLogPath ?? "");
+            SetRegistryValue("BackupLocation", settings.BackupLocation ?? "Backups");
 
             // Сохраняем настройки автозагрузки отдельно
             SetStartup(settings.RunAtStartup);
@@ -581,7 +577,7 @@ namespace RegistryRepairTool.Services
             }
         }
 
-      
+       
 
         private void CheckObsoleteEntries(List<RegistryError> errors)
         {

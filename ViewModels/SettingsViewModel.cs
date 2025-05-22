@@ -23,16 +23,20 @@ namespace RegistryRepairTool.ViewModels
         private bool _useCustomLogPath;
         private string _customLogPath;
         private string _backupLocation;
-
+        public SettingsModel Settings { get; }
+        private static SettingsViewModel _instance;
+        public static SettingsViewModel Instance => _instance ??= new SettingsViewModel();
         public SettingsViewModel()
         {
             _registryService = new RegistryService();
-            _settings = new SettingsModel();
+            _settings = _registryService.LoadAllSettings(); // Используем один экземпляр настроек
+            Settings = _settings; // Убедитесь, что Settings ссылается на _settings
+
+           
 
             LoadSettings();
-
+            SaveCommand = new RelayCommand(SaveSettings);
             // Инициализация команд с явным указанием методов
-            SaveCommand = new RelayCommand(() => SaveSettings());
             ResetToDefaultCommand = new RelayCommand(() => ResetToDefault());
             BrowseLogFolderCommand = new RelayCommand(() => BrowseLogFolder());
             BrowseBackupFolderCommand = new RelayCommand(() => BrowseBackupFolder());
@@ -144,14 +148,8 @@ namespace RegistryRepairTool.ViewModels
                 _settings.BackupLocation = BackupLocation;
 
                 // Сохраняем все настройки
-                _registryService.SaveStartupSetting(RunAtStartup); // Сохраняем автозагрузку
-                _registryService.SetRegistryValue("AutoScanOnStartup", AutoScanOnStartup ? 1 : 0);
-                _registryService.SetRegistryValue("ShowNotificationAfterFix", ShowNotificationAfterFix ? 1 : 0);
-                _registryService.SetRegistryValue("PlaySoundOnScanComplete", PlaySoundOnScanComplete ? 1 : 0);
-                _registryService.SetRegistryValue("SaveLogsToFile", SaveLogsToFile ? 1 : 0);
-                _registryService.SetRegistryValue("UseDefaultLogPath", UseDefaultLogPath ? 1 : 0);
-                _registryService.SetRegistryValue("CustomLogPath", CustomLogPath ?? "");
-                _registryService.SetRegistryValue("BackupLocation", BackupLocation ?? "Backups");
+                _registryService.SaveAllSettings(_settings); // Добавьте этот метод в RegistryService
+                _registryService.SaveStartupSetting(RunAtStartup);
 
                 System.Windows.MessageBox.Show("Настройки успешно сохранены!", "Сохранение",
                     MessageBoxButton.OK, MessageBoxImage.Information);
