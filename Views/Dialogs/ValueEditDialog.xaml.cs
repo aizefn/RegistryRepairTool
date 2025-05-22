@@ -1,6 +1,7 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Windows;
+using System.Windows.Input;
+using Microsoft.Win32;
 
 namespace RegistryRepairTool.Views
 {
@@ -15,6 +16,9 @@ namespace RegistryRepairTool.Views
             InitializeComponent();
             DataContext = this;
             ValueKind = RegistryValueKind.String;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            Left = 500;
+            Top = 300;
         }
 
         public ValueEditDialog(string name, object value, RegistryValueKind kind) : this()
@@ -23,7 +27,13 @@ namespace RegistryRepairTool.Views
             Value = value;
             ValueKind = kind;
         }
-
+        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                DragMove();
+            }
+        }
         private void OK_Click(object sender, RoutedEventArgs e)
         {
             try
