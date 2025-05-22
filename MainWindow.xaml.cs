@@ -10,12 +10,12 @@ namespace RegistryRepairTool
     /// </summary>
     public partial class MainWindow : Window
     {
-        private double _originalWidth;
-        private double _originalHeight;
-        private double _originalMinWidth;
-        private double _originalMinHeight;
-        private double _originalMaxWidth;
-        private double _originalMaxHeight;
+        private double _originalWidth = 1000;
+        private double _originalHeight = 720;
+        private double _originalMinWidth = 1100;
+        private double _originalMinHeight = 570;
+        private double _originalMaxWidth = 1100;
+        private double _originalMaxHeight = 570;
         public MainWindow()
         {
             InitializeComponent();
@@ -35,26 +35,96 @@ namespace RegistryRepairTool
         {
             StartGradientBackgroundAnimation();
         }
-        public void RestoreOriginalSize()
-        {
-            Width = _originalWidth;
-            Height = _originalHeight;
-            MinWidth = _originalMinWidth;
-            MinHeight = _originalMinHeight;
-            MaxWidth = _originalMaxWidth;
-            MaxHeight = _originalMaxHeight;
-        }
-
-        // Устанавливает компактный размер (под SettingsPage)
+        // Анимированное уменьшение окна (для SettingsPage)
         public void SetCompactSize()
         {
-            Width = 800;  // Новый размер окна для SettingsPage
-            Height = 600;
-            MinWidth = 800;
-            MinHeight = 600;
-            MaxWidth = 800;
-            MaxHeight = 600;
+            // Временно снимаем ограничения для анимации
+            MinWidth = 0;
+            MinHeight = 0;
+            MaxWidth = double.PositiveInfinity;
+            MaxHeight = double.PositiveInfinity;
+
+            // Анимация Width (800 — новый размер)
+            DoubleAnimation widthAnimation = new DoubleAnimation
+            {
+                To = 800,
+                Duration = TimeSpan.FromSeconds(0.3),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Анимация Height (600 — новый размер)
+            DoubleAnimation heightAnimation = new DoubleAnimation
+            {
+                To = 600,
+                Duration = TimeSpan.FromSeconds(0.3),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Запускаем анимации
+            BeginAnimation(WidthProperty, widthAnimation);
+            BeginAnimation(HeightProperty, heightAnimation);
+
+            // Возвращаем ограничения после анимации
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(0.3)
+            };
+            timer.Tick += (s, e) =>
+            {
+                MinWidth = 800;
+                MinHeight = 600;
+                MaxWidth = 800;
+                MaxHeight = 600;
+                timer.Stop();
+            };
+            timer.Start();
         }
+
+        // Анимированное восстановление исходного размера
+        public void RestoreOriginalSize()
+        {
+            // Временно снимаем ограничения
+            MinWidth = 0;
+            MinHeight = 0;
+            MaxWidth = double.PositiveInfinity;
+            MaxHeight = double.PositiveInfinity;
+
+            // Анимация Width (возврат к исходному размеру)
+            DoubleAnimation widthAnimation = new DoubleAnimation
+            {
+                To = _originalWidth,
+                Duration = TimeSpan.FromSeconds(0.3),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Анимация Height (возврат к исходному размеру)
+            DoubleAnimation heightAnimation = new DoubleAnimation
+            {
+                To = _originalHeight,
+                Duration = TimeSpan.FromSeconds(0.3),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Запускаем анимации
+            BeginAnimation(WidthProperty, widthAnimation);
+            BeginAnimation(HeightProperty, heightAnimation);
+
+            // Возвращаем ограничения после анимации
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(0.3)
+            };
+            timer.Tick += (s, e) =>
+            {
+                MinWidth = _originalMinWidth;
+                MinHeight = _originalMinHeight;
+                MaxWidth = _originalMaxWidth;
+                MaxHeight = _originalMaxHeight;
+                timer.Stop();
+            };
+            timer.Start();
+        }
+       
         private void StartGradientBackgroundAnimation()
         {
             var gradientBrush = new LinearGradientBrush

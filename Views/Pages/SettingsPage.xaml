@@ -7,7 +7,8 @@
       xmlns:viewModels="clr-namespace:RegistryRepairTool.ViewModels"
       Title="Настройки"
       Background="White"
-      FontFamily="Segoe UI">
+      FontFamily="Segoe UI"
+      >
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

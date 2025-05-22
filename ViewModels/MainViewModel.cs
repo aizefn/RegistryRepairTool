@@ -91,6 +91,8 @@ namespace RegistryRepairTool.ViewModels
         }
         private void Navigate(string pageKey)
         {
+            if (CurrentPageKey == pageKey)
+                return;
             if (string.IsNullOrEmpty(pageKey)) return;
 
             CurrentPageKey = pageKey;

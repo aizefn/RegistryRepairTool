@@ -23,6 +23,7 @@ namespace RegistryRepairTool.Views.Pages
             if (Window.GetWindow(this) is MainWindow mainWindow)
             {
                 mainWindow.SetCompactSize(); // Уменьшаем окно
+
             }
         }
 
