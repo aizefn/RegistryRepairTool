@@ -40,6 +40,7 @@ namespace RegistryRepairTool.ViewModels
 
             // Явно уведомляем об изменении коллекции
             OnPropertyChanged(nameof(Errors));
+            _window.Close();
         }
 
         private void CloseWindow()
