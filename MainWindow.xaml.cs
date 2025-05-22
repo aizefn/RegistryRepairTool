@@ -10,17 +10,51 @@ namespace RegistryRepairTool
     /// </summary>
     public partial class MainWindow : Window
     {
+        private double _originalWidth;
+        private double _originalHeight;
+        private double _originalMinWidth;
+        private double _originalMinHeight;
+        private double _originalMaxWidth;
+        private double _originalMaxHeight;
         public MainWindow()
         {
             InitializeComponent();
             DataContext = new MainViewModel();
-            
+
+            // Сохраняем оригинальные размеры
+            _originalWidth = Width;
+            _originalHeight = Height;
+            _originalMinWidth = MinWidth;
+            _originalMinHeight = MinHeight;
+            _originalMaxWidth = MaxWidth;
+            _originalMaxHeight = MaxHeight;
+
+            Loaded += MainWindow_Loaded;
         }
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             StartGradientBackgroundAnimation();
         }
+        public void RestoreOriginalSize()
+        {
+            Width = _originalWidth;
+            Height = _originalHeight;
+            MinWidth = _originalMinWidth;
+            MinHeight = _originalMinHeight;
+            MaxWidth = _originalMaxWidth;
+            MaxHeight = _originalMaxHeight;
+        }
 
+        // Устанавливает компактный размер (под SettingsPage)
+        public void SetCompactSize()
+        {
+            Width = 800;  // Новый размер окна для SettingsPage
+            Height = 600;
+            MinWidth = 800;
+            MinHeight = 600;
+            MaxWidth = 800;
+            MaxHeight = 600;
+        }
         private void StartGradientBackgroundAnimation()
         {
             var gradientBrush = new LinearGradientBrush

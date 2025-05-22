@@ -27,7 +27,29 @@ namespace RegistryRepairTool.ViewModels
         public Page CurrentPage
         {
             get => _currentPage;
-            set => SetProperty(ref _currentPage, value);
+            set
+            {
+                if (_currentPage is SettingsPage)
+                {
+                    // Если уходим со страницы настроек, восстановить размер
+                    if (Application.Current.MainWindow is MainWindow mainWindow)
+                    {
+                        mainWindow.RestoreOriginalSize();
+                    }
+                }
+
+                _currentPage = value;
+                OnPropertyChanged(nameof(CurrentPage));
+
+                if (_currentPage is SettingsPage)
+                {
+                    // Если переходим на страницу настроек, уменьшить окно
+                    if (Application.Current.MainWindow is MainWindow mainWindow)
+                    {
+                        mainWindow.SetCompactSize();
+                    }
+                }
+            }
         }
         private string _currentPageKey = "Home"; // Значение по умолчанию
         public string CurrentPageKey

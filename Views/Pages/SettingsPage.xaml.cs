@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using RegistryRepairTool.ViewModels;
 
 namespace RegistryRepairTool.Views.Pages
@@ -12,8 +13,25 @@ namespace RegistryRepairTool.Views.Pages
         {
             InitializeComponent();
             DataContext = new SettingsViewModel();
+
+            Loaded += OnSettingsPageLoaded;
+            Unloaded += OnSettingsPageUnloaded;
         }
 
+        private void OnSettingsPageLoaded(object sender, RoutedEventArgs e)
+        {
+            if (Window.GetWindow(this) is MainWindow mainWindow)
+            {
+                mainWindow.SetCompactSize(); // Уменьшаем окно
+            }
+        }
 
+        private void OnSettingsPageUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (Window.GetWindow(this) is MainWindow mainWindow)
+            {
+                mainWindow.RestoreOriginalSize(); // Восстанавливаем исходный размер
+            }
+        }
     }
 }
