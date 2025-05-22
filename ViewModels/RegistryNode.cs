@@ -77,21 +77,33 @@ namespace RegistryRepairTool.ViewModels
 
             try
             {
+                if (Key == null)
+                {
+                    Children.Add(new RegistryNode("Key not available", null));
+                    return;
+                }
+
                 var subKeyNames = Key.GetSubKeyNames();
                 foreach (var subKeyName in subKeyNames)
                 {
-                    var subKey = Key.OpenSubKey(subKeyName);
-                    if (subKey != null)
+                    try
                     {
-                        var childNode = new RegistryNode(subKeyName, subKey, this);
-                        Children.Add(childNode);
+                        var subKey = Key.OpenSubKey(subKeyName);
+                        if (subKey != null)
+                        {
+                            var childNode = new RegistryNode(subKeyName, subKey, this);
+                            Children.Add(childNode);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Children.Add(new RegistryNode($"{subKeyName} (Access denied)", null));
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Если нет прав доступа, добавляем информационный узел
-                Children.Add(new RegistryNode("No access", null));
+                Children.Add(new RegistryNode("Error loading children", null));
             }
         }
 

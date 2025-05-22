@@ -46,6 +46,8 @@ namespace RegistryRepairTool.ViewModels
 
         public RegistryEditViewModel()
         {
+            CopyPathCommand = new RelayCommand(CopySelectedPath, () => SelectedNode != null);
+
             NavigateCommand = new RelayCommand(NavigateToPath);
             RefreshCommand = new RelayCommand(LoadRegistry);
             CreateKeyCommand = new RelayCommand(CreateKey, CanEditRegistry);
@@ -54,7 +56,6 @@ namespace RegistryRepairTool.ViewModels
             EditValueCommand = new RelayCommand(EditValue, CanEditValue);
             DeleteValueCommand = new RelayCommand(DeleteValue, CanDeleteValue);
             ExportCommand = new RelayCommand(ExportRegistry);
-
             // Проверка прав администратора
             var identity = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(identity);
@@ -101,44 +102,84 @@ namespace RegistryRepairTool.ViewModels
                 if (pathParts.Length == 0)
                     return;
 
+                // Удаляем возможные пробелы в начале/конце
+                CurrentPath = CurrentPath.Trim();
+
                 RegistryKey baseKey = GetBaseKey(pathParts[0]);
                 if (baseKey == null)
-                    return;
-
-                RegistryKey currentKey = baseKey;
-                for (int i = 1; i < pathParts.Length; i++)
                 {
-                    currentKey = currentKey.OpenSubKey(pathParts[i]);
-                    if (currentKey == null)
+                    MessageBox.Show($"Неизвестный корневой раздел: {pathParts[0]}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Находим соответствующий корневой узел в дереве
+                var rootNode = RootNodes.FirstOrDefault(n => n.Key == baseKey);
+                if (rootNode == null)
+                {
+                    MessageBox.Show($"Корневой раздел не найден в дереве: {pathParts[0]}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Раскрываем корневой узел
+                rootNode.IsExpanded = true;
+                rootNode.IsSelected = true;
+
+                RegistryNode targetNode = rootNode;
+
+                // Переходим по пути
+                foreach (var part in pathParts.Skip(1))
+                {
+                    if (string.IsNullOrWhiteSpace(part))
+                        continue;
+
+                    // Загружаем дочерние элементы, если они еще не загружены
+                    if (!targetNode.Children.Any())
                     {
-                        MessageBox.Show($"Раздел '{pathParts[i]}' не найден", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        targetNode.LoadChildren();
+                    }
+
+                    var nextNode = targetNode.Children.FirstOrDefault(c =>
+                        c.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
+
+                    if (nextNode == null)
+                    {
+                        MessageBox.Show($"Раздел '{part}' не найден в '{targetNode.FullPath}'", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
+
+                    nextNode.IsExpanded = true;
+                    nextNode.IsSelected = true;
+                    targetNode = nextNode;
                 }
 
-                var rootNode = RootNodes.FirstOrDefault(n => n.Key == baseKey);
-                if (rootNode != null)
-                {
-                    var targetNode = rootNode;
-                    foreach (var part in pathParts.Skip(1))
-                    {
-                        targetNode = targetNode.Children.FirstOrDefault(c => c.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
-                        if (targetNode == null)
-                            break;
-                        targetNode.IsExpanded = true;
-                    }
-
-                    if (targetNode != null)
-                    {
-                        SelectedNode = targetNode;
-                    }
-                }
+                // Устанавливаем выбранный узел
+                SelectedNode = targetNode;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка перехода по пути: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        public ICommand CopyPathCommand { get; }
+        private void CopySelectedPath()
+        {
+            if (SelectedNode != null && !string.IsNullOrEmpty(SelectedNode.FullPath))
+            {
+                try
+                {
+                    Clipboard.SetText(SelectedNode.FullPath);
+
+                    // Вызываем событие для показа уведомления
+                    RequestShowCopyNotification?.Invoke(this, EventArgs.Empty);
+                }
+                catch
+                {
+                    // Обработка ошибок
+                }
+            }
+        }
+        public event EventHandler RequestShowCopyNotification;
 
         private RegistryKey GetBaseKey(string hiveName)
         {

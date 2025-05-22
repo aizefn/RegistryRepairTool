@@ -30,11 +30,12 @@ TextOptions.TextFormattingMode="Display"
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <!-- Path TextBox -->
                 <TextBox x:Name="PathTextBox" 
-                         Text="{Binding CurrentPath, UpdateSourceTrigger=PropertyChanged}"
-                         material:HintAssist.Hint="Путь в реестре"
-                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                         MinWidth="300"
-                         KeyDown="TextBox_KeyDown"/>
+         Text=""
+         material:HintAssist.Hint="Путь в реестре"
+         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+         MinWidth="300"
+         KeyDown="TextBox_KeyDown"
+         ToolTip="Пример: HKEY_CURRENT_USER\Software\Microsoft"/>
 
                 <!-- Navigation Buttons -->
                 <Button Command="{Binding NavigateCommand}"
@@ -139,14 +140,56 @@ TextOptions.TextFormattingMode="Display"
 
                     <!-- Header -->
                     <Border Grid.Row="0" 
-                            Background="{DynamicResource PrimaryHueLightBrush}"
-                            CornerRadius="4,4,0,0"
-                            Padding="8">
-                        <TextBlock Text="{Binding SelectedNode.FullPath}"
-                                   Margin="0,2"
-                                   FontWeight="Bold"
-                                   Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
-                                   TextTrimming="CharacterEllipsis"/>
+        Background="{DynamicResource PrimaryHueLightBrush}"
+        CornerRadius="4,4,0,0"
+        Padding="8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Основной TextBlock с путем -->
+                            <TextBlock Text="{Binding SelectedNode.FullPath}"
+                   Margin="0,2"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
+                   TextTrimming="CharacterEllipsis"
+                   Cursor="Hand"
+                   ToolTip="Нажмите, чтобы скопировать путь">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Gesture="LeftClick" Command="{Binding CopyPathCommand}"/>
+                                </TextBlock.InputBindings>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="TextDecorations" Value="Underline"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- Уведомление о копировании -->
+                            <TextBlock x:Name="CopyNotificationText"
+                   Text="✓ Скопировано!"
+                   Margin="8,0,0,0"
+                   Foreground="{DynamicResource PrimaryHueLightForegroundBrush}"
+                   FontWeight="Bold"
+                   Opacity="0"
+                   VerticalAlignment="Center">
+                                <TextBlock.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             From="0" To="1" Duration="0:0:0.2"/>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                             BeginTime="0:0:1.5"
+                                             From="1" To="0" Duration="0:0:0.5"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </TextBlock.Triggers>
+                            </TextBlock>
+                        </StackPanel>
                     </Border>
 
                     <!-- Values List -->
