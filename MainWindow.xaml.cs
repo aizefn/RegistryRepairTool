@@ -40,9 +40,9 @@ namespace RegistryRepairTool
         {
             // Временно снимаем ограничения для анимации
             MinWidth = 0;
-            MinHeight = 0;
+            
             MaxWidth = double.PositiveInfinity;
-            MaxHeight = double.PositiveInfinity;
+           
 
             // Анимация Width (800 — новый размер)
             DoubleAnimation widthAnimation = new DoubleAnimation
@@ -52,17 +52,10 @@ namespace RegistryRepairTool
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
 
-            // Анимация Height (600 — новый размер)
-            DoubleAnimation heightAnimation = new DoubleAnimation
-            {
-                To = 600,
-                Duration = TimeSpan.FromSeconds(0.3),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
+           
 
             // Запускаем анимации
             BeginAnimation(WidthProperty, widthAnimation);
-            BeginAnimation(HeightProperty, heightAnimation);
 
             // Возвращаем ограничения после анимации
             var timer = new System.Windows.Threading.DispatcherTimer
@@ -72,9 +65,7 @@ namespace RegistryRepairTool
             timer.Tick += (s, e) =>
             {
                 MinWidth = 800;
-                MinHeight = 600;
                 MaxWidth = 800;
-                MaxHeight = 600;
                 timer.Stop();
             };
             timer.Start();
@@ -85,9 +76,9 @@ namespace RegistryRepairTool
         {
             // Временно снимаем ограничения
             MinWidth = 0;
-            MinHeight = 0;
+            
             MaxWidth = double.PositiveInfinity;
-            MaxHeight = double.PositiveInfinity;
+           
 
             // Анимация Width (возврат к исходному размеру)
             DoubleAnimation widthAnimation = new DoubleAnimation
@@ -97,17 +88,11 @@ namespace RegistryRepairTool
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
 
-            // Анимация Height (возврат к исходному размеру)
-            DoubleAnimation heightAnimation = new DoubleAnimation
-            {
-                To = _originalHeight,
-                Duration = TimeSpan.FromSeconds(0.3),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
+           
 
             // Запускаем анимации
             BeginAnimation(WidthProperty, widthAnimation);
-            BeginAnimation(HeightProperty, heightAnimation);
+           
 
             // Возвращаем ограничения после анимации
             var timer = new System.Windows.Threading.DispatcherTimer

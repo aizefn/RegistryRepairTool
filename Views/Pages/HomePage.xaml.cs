@@ -13,6 +13,7 @@ namespace RegistryRepairTool.Views.Pages
         public ObservableCollection<string> RecentErrors { get; }
         public ObservableCollection<string> OptimizationTips { get; }
         public ICommand ShowAllErrorsCommand { get; }
+        public SystemInfoViewModel SystemInfo { get; } = new SystemInfoViewModel();
 
         public HomePage()
         {

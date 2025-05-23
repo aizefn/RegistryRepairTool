@@ -81,7 +81,7 @@
         </Border>
 
         <!-- Основной контент настроек -->
-        <Border Grid.Row="1" Margin="24" Padding="0">
+        <Border Grid.Row="1" Margin="24,24,24,0" Padding="0">
             <StackPanel>
                 <!-- Основные настройки -->
                 <TextBlock Text="Основные" Style="{StaticResource SectionHeader}"/>

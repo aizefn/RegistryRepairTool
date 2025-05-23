@@ -15,7 +15,7 @@ namespace RegistryRepairTool.ViewModels
     {
         private readonly RegistryService _registryService;
         private Page _currentPage;
-
+        public SystemInfoViewModel SystemInfo { get; } = new SystemInfoViewModel();
         public ICommand ClearCommand { get; }
         public ObservableCollection<string> RegistryErrors { get; }
         public ICommand ScanRegistryCommand { get; }

@@ -61,41 +61,55 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- График использования -->
-                    <Border CornerRadius="8" 
-                            Background="White" 
-                            Margin="0,0,10,0" 
-                            Padding="15"
-                            Effect="{DynamicResource ShadowEffect}"
-                            SnapsToDevicePixels="True">
-                        <StackPanel>
-                            <TextBlock Text="Состояние системы"
-                                       FontSize="16"
-                                       FontWeight="Medium"
-                                       Margin="0,0,0,10"
-                                       TextOptions.TextFormattingMode="Display"/>
-                            <ProgressBar Value="75" 
-                                        Style="{StaticResource RoundedProgressBar}" 
-                                         Margin="0,5"
-                                         Foreground="{DynamicResource PrimaryBrush}"
-                                         SnapsToDevicePixels="True"/>
-                            <TextBlock Text="75% ошибок реестра" 
-                                       FontSize="12"
-                                       Foreground="#FF666666"
-                                       TextOptions.TextFormattingMode="Display"/>
+                <Border CornerRadius="8" 
+        Background="{Binding SystemInfo.HasError, Converter={StaticResource ErrorToBackgroundConverter}}"
+        Margin="0,0,10,0" 
+        Padding="15"
+        Effect="{DynamicResource ShadowEffect}"
+        SnapsToDevicePixels="True">
+                    <StackPanel>
+                        <TextBlock Text="Информация о системе"
+                   FontSize="16"
+                   FontWeight="Medium"
+                   Margin="0,0,0,10"
+                   Foreground="{Binding SystemInfo.HasError, Converter={StaticResource ErrorToForegroundConverter}}"
+                   TextOptions.TextFormattingMode="Display"/>
 
-                            <ProgressBar Value="45" 
-                                         Style="{StaticResource RoundedProgressBar}" 
-                                         Margin="0,10,0,5"
-                                         Foreground="#FF4CAF50"
-                                         SnapsToDevicePixels="True"/>
-                            <TextBlock Text="45% оптимизировано" 
-                                       FontSize="12"
-                                       Foreground="#FF666666"
-                                       TextOptions.TextFormattingMode="Display"/>
+                        <!-- Версия ОС -->
+                        <StackPanel Orientation="Horizontal" Margin="0,5">
+                            <materialDesign:PackIcon 
+                Kind="MicrosoftWindows" 
+                Width="16"
+                Foreground="{Binding SystemInfo.HasError, Converter={StaticResource ErrorToIconColorConverter}, ConverterParameter=#FF2196F3}"
+                Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding SystemInfo.WindowsVersion, FallbackValue='Не удалось определить'}"
+                       Foreground="{Binding SystemInfo.HasError, Converter={StaticResource ErrorToForegroundConverter}}"
+                       FontSize="13"
+                       TextOptions.TextFormattingMode="Display"/>
                         </StackPanel>
-                    </Border>
 
-                    <!-- Последние ошибки -->
+                        <!-- Разрядность системы -->
+                        <StackPanel Orientation="Horizontal" Margin="0,5">
+                            <materialDesign:PackIcon 
+                Kind="Chip" 
+                Width="16"
+                Foreground="{Binding SystemInfo.HasError, Converter={StaticResource ErrorToIconColorConverter}, ConverterParameter=#FF4CAF50}"
+                Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding SystemInfo.SystemType, FallbackValue='Не удалось определить'}"
+                       Foreground="{Binding SystemInfo.HasError, Converter={StaticResource ErrorToForegroundConverter}}"
+                       FontSize="13"
+                       TextOptions.TextFormattingMode="Display"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                            <materialDesign:PackIcon Kind="ShieldCheck" Foreground="#FF2196F3" Margin="0,0,5,0"/>
+                            <TextBlock Text="Система защищена" Foreground="#FF333333" FontSize="13"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Border>
+                    
+
+                <!-- Последние ошибки -->
                     <Border CornerRadius="8" 
                             MaxHeight="156"
         Background="White" 

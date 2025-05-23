@@ -21,6 +21,13 @@
                     <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
                     <converters:InverseCountToVisibilityConverter x:Key="InverseCountToVisibility"/>
                     <converters:RegistryValueConverter x:Key="RegistryValueConverter"/>
+                    <converters:ErrorToBackgroundConverter x:Key="ErrorToBackgroundConverter"/>
+                    <converters:ErrorToForegroundConverter x:Key="ErrorToForegroundConverter"/>
+                    <converters:ErrorToIconColorConverter x:Key="ErrorToIconColorConverter"/>
+                    <converters:ErrorToIconKindConverter x:Key="ErrorToIconKindConverter"/>
+                    <converters:ErrorToStatusTextConverter x:Key="ErrorToStatusTextConverter"/>
+                    <converters:ErrorToTextColorConverter x:Key="ErrorToTextColorConverter"/>
+
                     <!-- Цветовая палитра -->
                     <SolidColorBrush x:Key="PrimaryBrush" Color="#FF3F51B5"/>
                     <SolidColorBrush x:Key="PrimaryLightBrush" Color="#FFC5CAE9"/>
